@@ -1,0 +1,3167 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth"><head>
+    
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Defender — Arcade &amp; The Developers</title>
+    <meta name="description" content="Retro arcade game cabinet and The Developers 3-slot interactive CV showcase.">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              display: ['"Chakra Petch"', 'sans-serif'],
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Google Fonts: Chakra Petch (Display), Plus Jakarta Sans (Body), JetBrains Mono (Telemetry/Scores) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+
+    <style>
+      :root {
+        --canvas-bg: #080b11;
+        --cabinet-surface: #101520;
+        --cabinet-elevated: #161d2b;
+        --border-hairline: rgba(255, 255, 255, 0.1);
+        --amber-accent: #f59e0b;
+        --emerald-cue: #10b981;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        background-color: var(--canvas-bg);
+        color: #f8fafc;
+      }
+
+      /* Subtle CRT scanline overlay restricted to the game screen bezel */
+      .crt-scanlines {
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0),
+          rgba(255, 255, 255, 0) 50%,
+          rgba(0, 0, 0, 0.18) 50%,
+          rgba(0, 0, 0, 0.18)
+        );
+        background-size: 100% 4px;
+      }
+
+      /* Tactile Arcade Cabinet Panel */
+      .cabinet-panel {
+        background: rgba(16, 21, 32, 0.88);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* Subtle Amber Phosphor Rim for active focus/selection */
+      .cabinet-active {
+        background: rgba(22, 29, 43, 0.95);
+        border: 1px solid rgba(245, 158, 11, 0.55);
+        box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2), 0 12px 32px rgba(0, 0, 0, 0.45);
+      }
+
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+
+      /* Clean Print Styling for the Active CV */
+      @media print {
+        body {
+          background: #ffffff !important;
+          color: #111827 !important;
+        }
+        #bg-canvas,
+        header,
+        #arcade,
+        #cv-selector-grid,
+        .no-print,
+        footer {
+          display: none !important;
+        }
+        #cv-viewer-card {
+          background: #ffffff !important;
+          color: #111827 !important;
+          border: 1px solid #d1d5db !important;
+          box-shadow: none !important;
+          margin: 0 !important;
+        }
+        #cv-viewer-card * {
+          color: #111827 !important;
+          border-color: #e5e7eb !important;
+        }
+        #cv-viewer-card .cv-accent-text {
+          color: #b45309 !important;
+        }
+        #cv-viewer-card .cv-skill-tag {
+          background: #fef3c7 !important;
+          color: #78350f !important;
+          border: 1px solid #fcd34d !important;
+        }
+      }
+    </style>
+  <script src="/_aistudio-iframe.js?v=29045eb3"></script><script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@2.0.4"></script><style>.aistudio-hover-highlight { box-shadow: inset 0 0 0 0.5px white, inset 0 0 0 1.5px rgba(128,128,128,0.6) !important; }.aistudio-active-highlight { outline: 2px solid #87a9ff !important; outline-offset: -2px !important; box-shadow: 0 0 0 0.5px rgba(0,0,0,0.3), inset 0 0 0 0.5px rgba(0,0,0,0.3) !important; }.aistudio-generating-blur { filter: blur(5px) grayscale(100%) brightness(28%) !important; transition: filter 0.3s ease; }#aistudio-focus-mode-tag { position: absolute; display: none; align-items: center; gap: 4px; background: #87a9ff; border-radius: 12px; z-index: 10000; padding: 8px; color: #32302c; font-family: Inter, sans-serif; font-size: 14px; font-style: normal; font-weight: 500; line-height: 21px; pointer-events: none; }#aistudio-hover-mode-tag { position: absolute; display: none; align-items: center; gap: 4px; background: rgba(128,128,128,0.6); border-radius: 12px; z-index: 10000; padding: 8px; color: white; font-family: Inter, sans-serif; font-size: 14px; font-style: normal; font-weight: 500; line-height: 21px; pointer-events: none; }.aistudio-img-icon { display: none; vertical-align: middle; pointer-events: auto; cursor: pointer; }.aistudio-img-icon.visible { display: inline-flex; }#aistudio-focus-mode-tag .aistudio-img-icon { position: relative; width: 26px; height: 26px; background: #32302c; border-radius: 6px; margin: -4px -4px -4px 0; }#aistudio-focus-mode-tag .aistudio-img-icon::before { content: ""; position: absolute; top: 4px; left: 4px; width: 18px; height: 18px; background-color: white; -webkit-mask-image: url("https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/edit_fix_auto/default/24px.svg"); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; mask-image: url("https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/edit_fix_auto/default/24px.svg"); mask-size: contain; mask-repeat: no-repeat; }#aistudio-hover-mode-tag .aistudio-img-icon { position: relative; width: 18px; height: 18px; margin-left: 4px; }#aistudio-hover-mode-tag .aistudio-img-icon::before { content: ""; position: absolute; top: 0; left: 0; width: 18px; height: 18px; background-color: white; -webkit-mask-image: url("https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/edit_fix_auto/default/24px.svg"); -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; mask-image: url("https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/edit_fix_auto/default/24px.svg"); mask-size: contain; mask-repeat: no-repeat; }#aistudio-focus-mode-tag .aistudio-img-icon:hover, #aistudio-hover-mode-tag .aistudio-img-icon:hover { background: #424242 !important; }#aistudio-focus-mode-tag .aistudio-img-icon:active, #aistudio-hover-mode-tag .aistudio-img-icon:active { background: #393f51 !important; }</style><style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:"Plus Jakarta Sans", sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:"JetBrains Mono", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.top-0{top:0px}.z-0{z-index:0}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-10{margin-bottom:2.5rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-4{margin-top:1rem}.mb-2\.5{margin-bottom:0.625rem}.mt-2{margin-top:0.5rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.aspect-\[16\/9\]{aspect-ratio:16/9}.h-16{height:4rem}.h-2\.5{height:0.625rem}.h-6{height:1.5rem}.h-full{height:100%}.h-12{height:3rem}.h-20{height:5rem}.max-h-\[540px\]{max-height:540px}.max-h-\[90vh\]{max-height:90vh}.w-2\.5{width:0.625rem}.w-6{width:1.5rem}.w-full{width:100%}.w-12{width:3rem}.w-20{width:5rem}.min-w-0{min-width:0px}.max-w-2xl{max-width:42rem}.max-w-3xl{max-width:48rem}.max-w-6xl{max-width:72rem}.max-w-md{max-width:28rem}.shrink-0{flex-shrink:0}.cursor-crosshair{cursor:crosshair}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.scroll-mt-20{scroll-margin-top:5rem}.scroll-mt-24{scroll-margin-top:6rem}.list-disc{list-style-type:disc}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}.gap-3\.5{gap:0.875rem}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-7 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.75rem * var(--tw-space-y-reverse))}.self-start{align-self:flex-start}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.overflow-x-hidden{overflow-x:hidden}.scroll-smooth{scroll-behavior:smooth}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-nowrap{white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-sm{border-radius:0.125rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-amber-500\/50{border-color:rgb(245 158 11 / 0.5)}.border-rose-500\/50{border-color:rgb(244 63 94 / 0.5)}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/15{border-color:rgb(255 255 255 / 0.15)}.border-white\/5{border-color:rgb(255 255 255 / 0.05)}.border-amber-500\/30{border-color:rgb(245 158 11 / 0.3)}.bg-\[\#080B11\]{--tw-bg-opacity:1;background-color:rgb(8 11 17 / var(--tw-bg-opacity, 1))}.bg-\[\#06090F\]{--tw-bg-opacity:1;background-color:rgb(6 9 15 / var(--tw-bg-opacity, 1))}.bg-\[\#080B11\]\/80{background-color:rgb(8 11 17 / 0.8)}.bg-\[\#080B11\]\/85{background-color:rgb(8 11 17 / 0.85)}.bg-\[\#0D121C\]{--tw-bg-opacity:1;background-color:rgb(13 18 28 / var(--tw-bg-opacity, 1))}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-amber-500\/20{background-color:rgb(245 158 11 / 0.2)}.bg-black\/80{background-color:rgb(0 0 0 / 0.8)}.bg-rose-500\/15{background-color:rgb(244 63 94 / 0.15)}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-\[\#141A28\]{--tw-bg-opacity:1;background-color:rgb(20 26 40 / var(--tw-bg-opacity, 1))}.bg-amber-500\/10{background-color:rgb(245 158 11 / 0.1)}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-amber-400{--tw-gradient-from:#fbbf24 var(--tw-gradient-from-position);--tw-gradient-to:rgb(251 191 36 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-amber-500{--tw-gradient-from:#f59e0b var(--tw-gradient-from-position);--tw-gradient-to:rgb(245 158 11 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-amber-600{--tw-gradient-to:#d97706 var(--tw-gradient-to-position)}.to-amber-700{--tw-gradient-to:#b45309 var(--tw-gradient-to-position)}.p-1{padding:0.25rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.p-5{padding:1.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.px-7{padding-left:1.75rem;padding-right:1.75rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.py-8{padding-top:2rem;padding-bottom:2rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.pb-16{padding-bottom:4rem}.pb-24{padding-bottom:6rem}.pb-4{padding-bottom:1rem}.pt-10{padding-top:2.5rem}.pt-3{padding-top:0.75rem}.pt-4{padding-top:1rem}.pt-8{padding-top:2rem}.pl-5{padding-left:1.25rem}.pt-6{padding-top:1.5rem}.text-center{text-align:center}.font-sans{font-family:"Plus Jakarta Sans", sans-serif}.font-display{font-family:"Chakra Petch", sans-serif}.font-mono{font-family:"JetBrains Mono", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.tabular-nums{--tw-numeric-spacing:tabular-nums;font-variant-numeric:var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction)}.leading-relaxed{line-height:1.625}.tracking-tight{letter-spacing:-0.025em}.tracking-wide{letter-spacing:0.025em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-slate-100{--tw-text-opacity:1;color:rgb(241 245 249 / var(--tw-text-opacity, 1))}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-400{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-rose-200{--tw-text-opacity:1;color:rgb(254 205 211 / var(--tw-text-opacity, 1))}.text-rose-400{--tw-text-opacity:1;color:rgb(251 113 133 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-950{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-amber-200{--tw-text-opacity:1;color:rgb(253 230 138 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.outline-none{outline:2px solid transparent;outline-offset:2px}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.selection\:bg-amber-500 *::selection{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.selection\:text-slate-950 *::selection{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.selection\:bg-amber-500::selection{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.selection\:text-slate-950::selection{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}.hover\:border-white\/25:hover{border-color:rgb(255 255 255 / 0.25)}.hover\:bg-amber-400:hover{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.hover\:bg-rose-500\/25:hover{background-color:rgb(244 63 94 / 0.25)}.hover\:bg-white\/10:hover{background-color:rgb(255 255 255 / 0.1)}.hover\:bg-white\/5:hover{background-color:rgb(255 255 255 / 0.05)}.hover\:text-amber-300:hover{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.hover\:text-amber-400:hover{--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.focus\:border-amber-400:focus{--tw-border-opacity:1;border-color:rgb(251 191 36 / var(--tw-border-opacity, 1))}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:bg-amber-500:active{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.active\:bg-amber-500\/30:active{background-color:rgb(245 158 11 / 0.3)}.active\:text-slate-950:active{--tw-text-opacity:1;color:rgb(2 6 23 / var(--tw-text-opacity, 1))}@media (min-width: 640px){.sm\:col-span-2{grid-column:span 2 / span 2}.sm\:h-24{height:6rem}.sm\:w-24{width:6rem}.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}.sm\:justify-end{justify-content:flex-end}.sm\:self-center{align-self:center}.sm\:p-6{padding:1.5rem}.sm\:p-8{padding:2rem}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-3xl{font-size:1.875rem;line-height:2.25rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-base{font-size:1rem;line-height:1.5rem}}@media (min-width: 768px){.md\:col-span-2{grid-column:span 2 / span 2}.md\:flex{display:flex}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:flex-row{flex-direction:row}.md\:items-end{align-items:flex-end}.md\:border-b-0{border-bottom-width:0px}.md\:border-r{border-right-width:1px}.md\:text-4xl{font-size:2.25rem;line-height:2.5rem}}</style></head>
+
+  <body class="bg-[#080B11] text-slate-100 font-sans antialiased selection:bg-amber-500 selection:text-slate-950 overflow-x-hidden">
+    <!-- ANIMATED STARFIELD & HORIZON GRID BACKGROUND -->
+    <canvas id="bg-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-0" aria-hidden="true" width="1167" height="666"></canvas>
+
+    <!-- 3-ZONE STICKY TOP BAR -->
+    <header class="sticky top-0 z-40 border-b border-white/10 bg-[#080B11]/85 backdrop-blur-md">
+      <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-8">
+        <!-- Zone 1: Brand Title -->
+        <a href="#arcade" class="flex items-center gap-2.5 text-lg font-display font-bold tracking-wide text-white whitespace-nowrap shrink-0">
+          <svg viewBox="0 0 24 24" fill="none" class="w-6 h-6 text-amber-400" aria-hidden="true">
+            <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.8"></rect>
+            <path d="M8 10v4M6 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path>
+            <circle cx="15.5" cy="11" r="1.2" fill="currentColor"></circle>
+            <circle cx="17.5" cy="13" r="1.2" fill="currentColor"></circle>
+          </svg>
+          <span>SIGNAL DEFENDER</span>
+        </a>
+
+        <!-- Zone 2: Navigation Links -->
+        <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+          <a href="#arcade" class="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0">Arcade</a>
+          <a href="#controls" class="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0">Controls</a>
+          <a href="#cv-roster" class="hover:text-amber-400 transition-colors whitespace-nowrap shrink-0">The Developers</a>
+        </nav>
+
+        <!-- Zone 3: Single Primary Action -->
+        <div class="flex items-center shrink-0">
+          <button onclick="focusArcadeAndStart()" class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-semibold text-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer">
+            Play Arcade
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="relative z-10">
+      <!-- SECTION 1: ARCADE GAME CABINET -->
+      <section id="arcade" class="scroll-mt-20 max-w-6xl mx-auto px-6 pt-10 pb-16">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <div>
+            <p class="text-xs font-mono uppercase tracking-wider text-amber-400 mb-1.5">Interactive 2D Cabinet</p>
+            <h1 class="text-3xl md:text-4xl font-display font-bold tracking-tight text-white">
+              Defend the Telemetry Grid
+            </h1>
+          </div>
+          <p class="text-sm text-slate-400 max-w-md">
+            Intercept incoming signal noise, collect tactical power-ups, and survive thicker waves—then scroll down to meet The Developers.
+          </p>
+        </div>
+
+        <!-- CABINET FRAME -->
+        <div class="cabinet-panel rounded-xl overflow-hidden shadow-2xl">
+          <!-- Unobtrusive Top HUD Bar -->
+          <div class="px-4 sm:px-6 py-3.5 border-b border-white/10 bg-[#0D121C] flex flex-wrap items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-6 font-mono text-sm tabular-nums">
+              <div>
+                <span class="text-slate-400 text-xs block">SCORE</span>
+                <span id="hud-score" class="text-white font-semibold text-base">00000</span>
+              </div>
+              <div>
+                <span class="text-slate-400 text-xs block">HIGH SCORE</span>
+                <span id="hud-highscore" class="text-amber-400 font-semibold text-base">79305</span>
+              </div>
+              <div>
+                <span class="text-slate-400 text-xs block">WAVE</span>
+                <span id="hud-wave" class="text-emerald-400 font-semibold text-base">01</span>
+              </div>
+              <div>
+                <span class="text-slate-400 text-xs block">MODE</span>
+                <span id="hud-mode" class="text-slate-200 font-semibold text-base">NORMAL</span>
+              </div>
+              <div>
+                <span class="text-slate-400 text-xs block">SHIELDS</span>
+                <span id="hud-lives" class="text-white font-semibold text-base flex items-center gap-1 mt-0.5">
+                  <span class="inline-block w-2.5 h-2.5 bg-amber-400 rounded-sm"></span>
+                  <span class="inline-block w-2.5 h-2.5 bg-amber-400 rounded-sm"></span>
+                  <span class="inline-block w-2.5 h-2.5 bg-amber-400 rounded-sm"></span>
+                </span>
+              </div>
+              <div id="hud-powerup-wrap" class="hidden">
+                <span class="text-slate-400 text-xs block">ACTIVE BUFFS</span>
+                <span id="hud-powerup" class="text-sky-400 font-semibold text-xs">2X PULSE</span>
+              </div>
+              <div id="hud-upgrades-wrap" class="hidden">
+                <span class="text-slate-400 text-xs block">PERKS</span>
+                <span id="hud-upgrades" class="text-emerald-400 font-semibold text-xs"></span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2.5">
+              <button id="sfx-btn" onclick="toggleSfx()" class="px-3 py-1.5 rounded-md border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-mono text-slate-200 transition-colors cursor-pointer whitespace-nowrap">
+                SFX: On
+              </button>
+              <button id="pause-btn" onclick="togglePause()" class="px-3 py-1.5 rounded-md border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-mono text-slate-200 transition-colors cursor-pointer whitespace-nowrap">
+                Pause
+              </button>
+            </div>
+          </div>
+
+          <!-- GAME SCREEN VIEWPORT -->
+          <div class="relative w-full aspect-[16/9] max-h-[540px] bg-[#06090F] select-none overflow-hidden">
+            <canvas id="game-canvas" width="960" height="540" class="w-full h-full block cursor-crosshair"></canvas>
+            <div class="crt-scanlines absolute inset-0 pointer-events-none"></div>
+
+            <!-- STATE OVERLAY: TITLE MENU -->
+            <div id="overlay-title" class="absolute inset-0 bg-[#080B11]/85 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+              <p class="text-xs font-mono uppercase tracking-widest text-amber-400 mb-2">Arcade Cabinet</p>
+              <h2 class="text-4xl sm:text-5xl font-display font-bold tracking-tight text-white mb-3">
+                SIGNAL DEFENDER
+              </h2>
+              <p class="text-sm text-slate-300 max-w-md mb-6 leading-relaxed">
+                Pilot the interceptor, clear incoming noise drones, and survive escalating boss waves.
+              </p>
+
+              <!-- Difficulty Selector -->
+              <div class="flex items-center gap-2 p-1 rounded-lg bg-white/5 border border-white/10 mb-6">
+                <button data-diff-btn="normal" onclick="setDifficulty('normal')" class="px-4 py-1.5 rounded-md text-xs font-semibold bg-amber-500 text-slate-950 transition-colors cursor-pointer">
+                  Normal
+                </button>
+                <button data-diff-btn="hard" onclick="setDifficulty('hard')" class="px-4 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer">
+                  Hard
+                </button>
+              </div>
+
+              <button onclick="startGame()" class="px-7 py-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-base tracking-wide transition-transform active:scale-95 cursor-pointer">
+                Start Game
+              </button>
+              <p class="mt-4 text-xs font-mono text-slate-400">
+                Move: A / D or Arrow Keys · Fire: Space or Click
+              </p>
+            </div>
+
+            <!-- STATE OVERLAY: PAUSED -->
+            <div id="overlay-paused" class="hidden absolute inset-0 bg-[#080B11]/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+              <h2 class="text-3xl font-display font-bold text-white mb-2">Game Paused</h2>
+              <p class="text-sm text-slate-400 mb-4">Press P or click Resume to continue defending.</p>
+              <div class="flex items-center gap-2 p-1 rounded-lg bg-white/5 border border-white/10 mb-5">
+                <button data-diff-btn="normal" onclick="setDifficulty('normal')" class="px-3.5 py-1.5 rounded-md text-xs font-semibold bg-amber-500 text-slate-950 transition-colors cursor-pointer">
+                  Normal
+                </button>
+                <button data-diff-btn="hard" onclick="setDifficulty('hard')" class="px-3.5 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer">
+                  Hard
+                </button>
+              </div>
+              <div class="flex items-center gap-3">
+                <button onclick="togglePause()" class="px-6 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-sm cursor-pointer">
+                  Resume
+                </button>
+                <button onclick="startGame()" class="px-6 py-2.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm cursor-pointer">
+                  Restart
+                </button>
+              </div>
+            </div>
+
+            <!-- STATE OVERLAY: GAME OVER -->
+            <div id="overlay-gameover" class="hidden absolute inset-0 bg-[#080B11]/88 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center">
+              <p class="text-xs font-mono uppercase tracking-widest text-rose-400 mb-1">Signal Lost</p>
+              <h2 class="text-4xl font-display font-bold text-white mb-4">Game Over</h2>
+              <div class="flex items-center gap-8 font-mono mb-4 tabular-nums">
+                <div>
+                  <span class="block text-xs text-slate-400">FINAL SCORE</span>
+                  <span id="final-score" class="text-2xl font-bold text-amber-400">0</span>
+                </div>
+                <div>
+                  <span class="block text-xs text-slate-400">WAVE REACHED</span>
+                  <span id="final-wave" class="text-2xl font-bold text-white">1</span>
+                </div>
+              </div>
+              <p id="new-record-msg" class="hidden text-xs font-mono text-emerald-400 mb-3">
+                New High Score Recorded
+              </p>
+
+              <!-- Switch Difficulty After Playing -->
+              <div class="flex flex-col items-center gap-1.5 mb-5">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Select Difficulty</span>
+                <div class="flex items-center gap-2 p-1 rounded-lg bg-white/5 border border-white/10">
+                  <button data-diff-btn="normal" onclick="setDifficulty('normal')" class="px-4 py-1.5 rounded-md text-xs font-semibold bg-amber-500 text-slate-950 transition-colors cursor-pointer">
+                    Normal
+                  </button>
+                  <button data-diff-btn="hard" onclick="setDifficulty('hard')" class="px-4 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer">
+                    Hard Mode
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center justify-center gap-3">
+                <button onclick="startGame()" class="px-7 py-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-base cursor-pointer">
+                  Play Again
+                </button>
+                <button id="gameover-hard-btn" onclick="setDifficulty('hard'); startGame();" class="px-5 py-3 rounded-lg border border-rose-500/50 bg-rose-500/15 hover:bg-rose-500/25 text-rose-200 font-display font-bold text-sm cursor-pointer">
+                  Try Hard Mode
+                </button>
+              </div>
+            </div>
+
+            <!-- STATE OVERLAY: POST-BOSS PERMANENT UPGRADE -->
+            <div id="overlay-upgrade" class="hidden absolute inset-0 bg-[#080B11]/92 backdrop-blur-sm flex flex-col items-center justify-center p-4 sm:p-6 text-center">
+              <p class="text-[11px] font-mono uppercase tracking-widest text-emerald-400 mb-1">
+                Boss Wave Cleared
+              </p>
+              <h2 class="text-2xl sm:text-3xl font-display font-bold text-white mb-1">
+                Choose 1 Permanent Upgrade
+              </h2>
+              <p class="text-xs text-slate-400 mb-4">
+                Active for the rest of this run · Press 1, 2, or 3 or click a module
+              </p>
+              <div id="upgrade-choices" class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-3xl"></div>
+            </div>
+          </div>
+
+          <!-- CONTROLS & TOUCH BAR -->
+          <div id="controls" class="scroll-mt-24 px-4 sm:px-6 py-3.5 border-t border-white/10 bg-[#0D121C] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs font-mono text-slate-400 flex flex-wrap items-center gap-4">
+              <span><strong class="text-slate-200">← / →</strong> or <strong class="text-slate-200">A / D</strong> Move</span>
+              <span>·</span>
+              <span><strong class="text-slate-200">Space</strong> or <strong class="text-slate-200">Click</strong> Fire</span>
+              <span>·</span>
+              <span><strong class="text-slate-200">P</strong> Pause</span>
+            </div>
+
+            <!-- Touch / Mouse Arcade Buttons -->
+            <div class="flex items-center gap-2">
+              <button onpointerdown="touchState.left = true" onpointerup="touchState.left = false" onpointerleave="touchState.left = false" class="px-4 py-2 rounded-md border border-white/15 bg-white/5 active:bg-amber-500/30 text-xs font-mono text-slate-200 select-none cursor-pointer">
+                ◀ Left
+              </button>
+              <button onpointerdown="touchState.fire = true" onpointerup="touchState.fire = false" onpointerleave="touchState.fire = false" class="px-5 py-2 rounded-md bg-amber-500/20 border border-amber-500/50 active:bg-amber-500 active:text-slate-950 text-xs font-mono font-semibold text-amber-300 select-none cursor-pointer">
+                FIRE
+              </button>
+              <button onpointerdown="touchState.right = true" onpointerup="touchState.right = false" onpointerleave="touchState.right = false" class="px-4 py-2 rounded-md border border-white/15 bg-white/5 active:bg-amber-500/30 text-xs font-mono text-slate-200 select-none cursor-pointer">
+                Right ▶
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: 3-CV ROSTER & THEME-ADJUSTED VIEWER -->
+      <section id="cv-roster" class="scroll-mt-24 max-w-6xl mx-auto px-6 pt-8 pb-24 border-t border-white/10">
+        <div class="mb-8 pt-8">
+          <p class="text-xs font-mono uppercase tracking-wider text-amber-400 mb-1.5">Curriculum Vitae Vault</p>
+          <h2 class="text-3xl font-display font-bold tracking-tight text-white">
+            The Developers
+          </h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Select any slot in The Developers to view their CV styled in the Signal Defender arcade theme, or click Edit to customize any slot.
+          </p>
+        </div>
+
+        <!-- 3-CARD CV SLOT SELECTOR -->
+        <div id="cv-selector-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10"><!-- Rendered dynamically by JS --></div>
+
+        <!-- ACTIVE CV FULL VIEWER (Re-themed to match Website) -->
+        <div id="cv-viewer-card" class="cabinet-panel rounded-xl overflow-hidden" role="document"><!-- Rendered dynamically by JS --></div>
+      </section>
+    </main>
+
+    <!-- EDIT CV MODAL -->
+    <div id="cv-editor-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="editor-modal-title">
+      <div class="cabinet-panel rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+          <div>
+            <p id="editor-slot-label" class="text-xs font-mono text-amber-400 uppercase tracking-wider">Editing Slot 01</p>
+            <h3 id="editor-modal-title" class="text-xl font-display font-bold text-white">Update CV Details</h3>
+          </div>
+          <button onclick="closeCvEditor()" class="px-3 py-1.5 rounded-md border border-white/15 bg-white/5 hover:bg-white/10 text-xs text-slate-300 cursor-pointer">
+            Close
+          </button>
+        </div>
+
+        <form id="cv-edit-form" onsubmit="saveCvEdits(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+              <input id="edit-name" type="text" required="" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Initials (Avatar)</label>
+              <input id="edit-initials" type="text" maxlength="3" required="" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none uppercase">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Role / Headline</label>
+            <input id="edit-subtitle" type="text" required="" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Email</label>
+              <input id="edit-email" type="text" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Phone</label>
+              <input id="edit-phone" type="text" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Address</label>
+              <input id="edit-address" type="text" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Profile Summary</label>
+            <textarea id="edit-profile" rows="2" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Skills (comma-separated)</label>
+            <input id="edit-skills" type="text" placeholder="e.g. Analytic thinking, Computational thinking, IoT" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Education (one entry per line)</label>
+            <textarea id="edit-education" rows="3" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Experience Title</label>
+            <input id="edit-exp-title" type="text" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Experience Bullet Points (one per line)</label>
+            <textarea id="edit-exp-bullets" rows="3" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Projects &amp; Interests</label>
+            <textarea id="edit-projects" rows="2" class="w-full rounded-lg bg-[#080B11] border border-white/15 px-3.5 py-2 text-sm text-white focus:border-amber-400 outline-none"></textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-4 border-t border-white/10">
+            <button type="button" onclick="resetCurrentSlot()" class="px-4 py-2 rounded-lg border border-white/15 text-xs text-slate-400 hover:text-white cursor-pointer">
+              Reset Slot
+            </button>
+            <div class="flex items-center gap-3">
+              <button type="button" onclick="closeCvEditor()" class="px-4 py-2 rounded-lg border border-white/15 text-xs font-medium text-slate-300 hover:bg-white/5 cursor-pointer">
+                Cancel
+              </button>
+              <button type="submit" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-semibold cursor-pointer">
+                Save CV Slot
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="relative z-10 border-t border-white/10 py-8 px-6 text-xs text-slate-400">
+      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p>© 2026 Kevin Emerson · Signal Defender Arcade &amp; CV Portfolio</p>
+        <div class="flex items-center gap-6">
+          <a href="#arcade" class="hover:text-white transition-colors">Arcade</a>
+          <a href="#cv-roster" class="hover:text-white transition-colors">The Developers</a>
+        </div>
+      </div>
+      <div class="max-w-6xl mx-auto mt-4 pt-3 border-t border-white/5 flex justify-center sm:justify-end">
+        <button onclick="copySelfSource(this)" class="text-[10px] font-mono text-slate-500 hover:text-amber-300 border border-white/10 rounded px-2 py-0.5 transition-colors cursor-pointer">
+          Copy HTML
+        </button>
+      </div>
+    </footer>
+
+    <!-- ====================================================================== -->
+    <!-- ALL JAVASCRIPT: STARFIELD BACKGROUND, ARCADE GAME ENGINE, 3-CV ROSTER  -->
+    <!-- ====================================================================== -->
+    <script>
+      /* =====================================================================
+       * 1. AMBIENT BACKGROUND STARFIELD + HORIZON GRID CANVAS
+       * ===================================================================== */
+      (function initBackground() {
+        const bgCanvas = document.getElementById('bg-canvas');
+        const ctx = bgCanvas.getContext('2d');
+        let stars = [];
+        let w = 0, h = 0;
+
+        function resize() {
+          w = bgCanvas.width = window.innerWidth;
+          h = bgCanvas.height = window.innerHeight;
+          stars = Array.from({ length: 85 }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            size: Math.random() * 1.6 + 0.5,
+            speed: Math.random() * 0.28 + 0.08,
+            alpha: Math.random() * 0.5 + 0.15,
+            amber: Math.random() > 0.82
+          }));
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        function drawBg() {
+          ctx.clearRect(0, 0, w, h);
+
+          // Subtle radial ambient glow at top
+          const grad = ctx.createRadialGradient(w * 0.5, 0, 20, w * 0.5, 0, Math.max(w, h) * 0.75);
+          grad.addColorStop(0, 'rgba(245, 158, 11, 0.06)');
+          grad.addColorStop(0.5, 'rgba(16, 21, 32, 0.02)');
+          grad.addColorStop(1, 'rgba(8, 11, 17, 0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, w, h);
+
+          // Faint horizon arcade grid lines
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+          ctx.lineWidth = 1;
+          const gridSize = 64;
+          for (let x = 0; x < w; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, h);
+            ctx.stroke();
+          }
+
+          // Drifting stars
+          for (const s of stars) {
+            s.y += s.speed;
+            if (s.y > h) {
+              s.y = -4;
+              s.x = Math.random() * w;
+            }
+            ctx.fillStyle = s.amber
+              ? `rgba(245, 158, 11, ${s.alpha})`
+              : `rgba(226, 232, 240, ${s.alpha})`;
+            ctx.fillRect(s.x, s.y, s.size, s.size);
+          }
+
+          requestAnimationFrame(drawBg);
+        }
+
+        drawBg();
+      })();
+
+      /* =====================================================================
+       * 2. RETRO ARCADE SOUND EFFECTS (SFX ONLY - NO BACKGROUND SONG)
+       * ===================================================================== */
+      let sfxEnabled = true;
+      let sfxCtx = null;
+
+      function ensureSfxCtx() {
+        if (!sfxEnabled) return null;
+        if (!sfxCtx) {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) sfxCtx = new AC();
+        }
+        if (sfxCtx && sfxCtx.state === 'suspended') {
+          sfxCtx.resume();
+        }
+        return sfxCtx;
+      }
+
+      function playTone(freqStart, freqEnd, duration, type = 'square', volume = 0.06) {
+        const ctx = ensureSfxCtx();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freqStart, now);
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, freqEnd), now + duration);
+        gain.gain.setValueAtTime(volume, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      function toggleSfx() {
+        sfxEnabled = !sfxEnabled;
+        document.getElementById('sfx-btn').textContent = sfxEnabled ? 'SFX: On' : 'SFX: Off';
+        if (sfxEnabled) playTone(520, 780, 0.08, 'triangle', 0.05);
+      }
+
+      /* =====================================================================
+       * 3. SIGNAL DEFENDER 2D ARCADE GAME ENGINE
+       * ===================================================================== */
+      const canvas = document.getElementById('game-canvas');
+      const gCtx = canvas.getContext('2d');
+      const W = canvas.width;   // 960
+      const H = canvas.height;  // 540
+
+      let gameState = 'TITLE_MENU'; // 'TITLE_MENU' | 'PLAYING' | 'PAUSED' | 'UPGRADE_PICK' | 'GAME_OVER'
+      let difficulty = 'normal';
+      let score = 0;
+      let highScore = Number(localStorage.getItem('signal_defender_highscore') || 0);
+      let wave = 1;
+      let lives = 3;
+      let twinTimer = 0;
+      let tripleTimer = 0;
+      let rapidTimer = 0;
+      let heavyTimer = 0;
+      let laserTimer = 0;
+      let laserTickTimer = 0;
+      let laserBeams = [];
+      let invulnTimer = 0;
+      let lastTime = 0;
+
+      let targetZoom = 1.0;
+      let currentZoom = 1.0;
+      let arenaW = W;
+      let arenaH = H;
+
+      // Creative Permanent Stats Upgrades (12 distinct modules unlocked after every Boss Wave)
+      const PERMANENT_UPGRADES = [
+        {
+          key: 'ricochet',
+          short: 'RIC',
+          name: 'Ricochet Plating',
+          accent: 'text-cyan-400 border-cyan-500/35 bg-cyan-500/10',
+          desc: '+1 bullet bounce off arena walls & struck bots to chain extra hits.'
+        },
+        {
+          key: 'magnet',
+          short: 'MAG',
+          name: 'Flux Magnet & Clock',
+          accent: 'text-sky-400 border-sky-500/35 bg-sky-500/10',
+          desc: 'Pulls nearby power-up pods toward your ship & boosts buff duration +22%.'
+        },
+        {
+          key: 'thorns',
+          short: 'SHK',
+          name: 'Reactive Shock-Armor',
+          accent: 'text-rose-400 border-rose-500/35 bg-rose-500/10',
+          desc: 'Taking a hit triggers a shock nova clearing bullets & zapping bots; +12% ship speed.'
+        },
+        {
+          key: 'crit',
+          short: 'CRT',
+          name: 'Piercing Crit Core',
+          accent: 'text-amber-400 border-amber-500/35 bg-amber-500/10',
+          desc: '+18% chance for golden Crit bolts (2x damage) that pierce through 1 bot.'
+        },
+        {
+          key: 'salvage',
+          short: 'SLV',
+          name: 'Nanite Salvage Core',
+          accent: 'text-emerald-400 border-emerald-500/35 bg-emerald-500/10',
+          desc: 'Auto-repairs +1 Shield every 18 kills (-3 kills/lv) and raises Shield cap.'
+        },
+        {
+          key: 'wingman',
+          short: 'DRN',
+          name: 'Autonomous Wingman',
+          accent: 'text-violet-400 border-violet-500/35 bg-violet-500/10',
+          desc: 'Deploys 2-4 smart homing drones firing rapid high-damage (2+lv) predictive bolts.'
+        },
+        {
+          key: 'overdrive',
+          short: 'OVR',
+          name: 'Plasma Overdrive',
+          accent: 'text-orange-400 border-orange-500/35 bg-orange-500/10',
+          desc: 'Cuts primary fire cooldown -14% and boosts bullet velocity +16% per level.'
+        },
+        {
+          key: 'siphon',
+          short: 'CHR',
+          name: 'Chrono Siphon',
+          accent: 'text-teal-400 border-teal-500/35 bg-teal-500/10',
+          desc: 'Every kill extends all active temporary buffs by +0.35s per level (+15 pts).'
+        },
+        {
+          key: 'orbital',
+          short: 'ORB',
+          name: 'Orbital Saw Shield',
+          accent: 'text-fuchsia-400 border-fuchsia-500/35 bg-fuchsia-500/10',
+          desc: 'Deploys 1+lv spinning plasma orbs that intercept enemy bullets & slice bots.'
+        },
+        {
+          key: 'tesla',
+          short: 'TSL',
+          name: 'Tesla Arc Coil',
+          accent: 'text-indigo-400 border-indigo-500/35 bg-indigo-500/10',
+          desc: '28% chance/lv for hits to chain lightning arcs to 1+lv nearby enemies (2 dmg).'
+        },
+        {
+          key: 'cryo',
+          short: 'CRY',
+          name: 'Cryo Disruptor',
+          accent: 'text-blue-300 border-blue-400/35 bg-blue-400/10',
+          desc: 'Chills struck enemies for 2.6s, slowing their movement & dive speed up to 65%.'
+        },
+        {
+          key: 'nova',
+          short: 'NVA',
+          name: 'Death Nova Core',
+          accent: 'text-lime-400 border-lime-500/35 bg-lime-500/10',
+          desc: 'Destroyed enemies burst into 3+lv radial plasma shrapnel bolts damaging others.'
+        }
+      ];
+
+      let upgrades = {
+        ricochet: 0,
+        magnet: 0,
+        thorns: 0,
+        crit: 0,
+        salvage: 0,
+        wingman: 0,
+        overdrive: 0,
+        siphon: 0,
+        orbital: 0,
+        tesla: 0,
+        cryo: 0,
+        nova: 0
+      };
+      let salvageKills = 0;
+      let wingmanTimer = 0;
+      let currentUpgradeOptions = [];
+
+      const keys = { left: false, right: false, fire: false };
+      const touchState = { left: false, right: false, fire: false };
+      let pointerActive = false;
+      let pointerX = W / 2;
+
+      const player = { x: W / 2, y: H - 46, w: 38, h: 24, speed: 560, cooldown: 0 };
+      let bullets = [];
+      let enemyBullets = [];
+      let enemies = [];
+      let particles = [];
+      let powerups = [];
+      let floatingTexts = [];
+      let empEffects = [];
+      let shockedGhosts = [];
+      let enemyShootTimer = 0;
+
+      // Update High Score on Load
+      document.getElementById('hud-highscore').textContent = String(highScore).padStart(5, '0');
+
+      function setDifficulty(mode) {
+        difficulty = mode;
+        const activeCls = 'px-4 py-1.5 rounded-md text-xs font-semibold bg-amber-500 text-slate-950 transition-colors cursor-pointer';
+        const hardActiveCls = 'px-4 py-1.5 rounded-md text-xs font-semibold bg-rose-500 text-white transition-colors cursor-pointer';
+        const idleCls = 'px-4 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white transition-colors cursor-pointer';
+
+        document.querySelectorAll('[data-diff-btn="normal"]').forEach((btn) => {
+          btn.className = mode === 'normal' ? activeCls : idleCls;
+        });
+        document.querySelectorAll('[data-diff-btn="hard"]').forEach((btn) => {
+          btn.className = mode === 'hard' ? hardActiveCls : idleCls;
+        });
+
+        const hardShortcut = document.getElementById('gameover-hard-btn');
+        if (hardShortcut) {
+          hardShortcut.classList.toggle('hidden', mode === 'hard');
+        }
+
+        const hudMode = document.getElementById('hud-mode');
+        if (hudMode) {
+          hudMode.textContent = mode === 'hard' ? 'HARD' : 'NORMAL';
+          hudMode.className = mode === 'hard' ? 'text-rose-400 font-semibold text-base' : 'text-slate-200 font-semibold text-base';
+        }
+      }
+
+      function focusArcadeAndStart() {
+        document.getElementById('arcade').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (gameState === 'TITLE_MENU' || gameState === 'GAME_OVER') {
+          startGame();
+        }
+      }
+
+      function updateHud() {
+        document.getElementById('hud-score').textContent = String(score).padStart(5, '0');
+        document.getElementById('hud-highscore').textContent = String(highScore).padStart(5, '0');
+        document.getElementById('hud-wave').textContent = String(wave).padStart(2, '0');
+
+        const livesEl = document.getElementById('hud-lives');
+        livesEl.innerHTML = '';
+        for (let i = 0; i < Math.max(0, lives); i++) {
+          const pip = document.createElement('span');
+          pip.className = 'inline-block w-2.5 h-2.5 bg-amber-400 rounded-sm';
+          livesEl.appendChild(pip);
+        }
+
+        const activeBuffs = [];
+        if (laserTimer > 0) activeBuffs.push(`LSR ${laserTimer.toFixed(1)}s`);
+        if (tripleTimer > 0) activeBuffs.push(`3X ${tripleTimer.toFixed(1)}s`);
+        else if (twinTimer > 0) activeBuffs.push(`2X ${twinTimer.toFixed(1)}s`);
+        if (rapidTimer > 0) activeBuffs.push(`SPD ${rapidTimer.toFixed(1)}s`);
+        if (heavyTimer > 0) activeBuffs.push(`HVY ${heavyTimer.toFixed(1)}s`);
+
+        const pWrap = document.getElementById('hud-powerup-wrap');
+        const pLabel = document.getElementById('hud-powerup');
+        if (activeBuffs.length > 0) {
+          pWrap.classList.remove('hidden');
+          pLabel.textContent = activeBuffs.join(' · ');
+        } else {
+          pWrap.classList.add('hidden');
+        }
+
+        const activePerks = PERMANENT_UPGRADES
+          .filter((u) => upgrades[u.key] > 0)
+          .map((u) => `${u.short}${upgrades[u.key]}`);
+        const uWrap = document.getElementById('hud-upgrades-wrap');
+        const uLabel = document.getElementById('hud-upgrades');
+        if (uWrap && uLabel) {
+          if (activePerks.length > 0) {
+            uWrap.classList.remove('hidden');
+            uLabel.textContent = activePerks.join(' · ');
+          } else {
+            uWrap.classList.add('hidden');
+          }
+        }
+      }
+
+      function makeEnemy(type, x, y, waveNum, hpMult) {
+        let baseHp = 1;
+        if (type === 'courier') {
+          baseHp = 1;
+        } else if (type === 'juggernaut') {
+          baseHp = 3 + Math.floor(waveNum * 0.85);
+        } else if (type === 'heavy') {
+          baseHp = 2 + Math.floor(waveNum * 0.55);
+        } else if (type === 'zigzag') {
+          baseHp = 1 + Math.floor(waveNum / 3);
+        } else {
+          baseHp = 1 + Math.floor((waveNum - 1) / 4);
+        }
+
+        const finalHp = type === 'courier' ? 1 : Math.max(1, Math.round(baseHp * hpMult));
+        const w = type === 'juggernaut' ? 36 : type === 'courier' ? 24 : 32;
+        const h = type === 'juggernaut' ? 24 : type === 'courier' ? 18 : 22;
+
+        return {
+          type,
+          x,
+          y,
+          w,
+          h,
+          hp: finalHp,
+          maxHp: finalHp,
+          hitFlash: 0,
+          shockTimer: 0,
+          slowTimer: 0,
+          lastVx: 0,
+          lastVy: 0,
+          dir: Math.random() < 0.5 ? 1 : -1,
+          speedMult: type === 'courier' ? 0.55 + Math.random() * 0.35 : 0.72 + Math.random() * 0.68,
+          diveRate: type === 'courier' ? 1.8 + Math.random() * 1.6 : 2.2 + Math.random() * 2.4 + Math.min(9, waveNum * 0.65),
+          turnTimer: 1.4 + Math.random() * 3.4,
+          phase: Math.random() * Math.PI * 2,
+          swayFreq: 1.8 + Math.random() * 2.8,
+          swayAmp: type === 'zigzag' ? 24 + Math.random() * 22 : type === 'courier' ? 10 : type === 'scout' ? 12 + Math.random() * 14 : 8 + Math.random() * 8,
+          dashTimer: Math.max(1.2, (3.2 - waveNum * 0.14) + Math.random() * 4.2),
+          dashVx: 0,
+          dashVy: 0,
+          dashDuration: 0,
+          pts: type === 'juggernaut' ? 250 : type === 'heavy' ? 160 : type === 'zigzag' ? 130 : type === 'courier' ? 80 : 100
+        };
+      }
+
+      const BOSS_NAMES = [
+        'AMBER DREADNOUGHT',
+        'TRIDENT CARRIER',
+        'HEX ORBITER FORTRESS',
+        'SCYTHE LEVIATHAN',
+        'SOLAR MONOLITH',
+        'VIPER HYDRA',
+        'CRIMSON CITADEL',
+        'PHANTOM ECLIPSE'
+      ];
+
+      function makeBoss(x, y, waveNum, hpMult, isMini = false, shapeOverride = null) {
+        const bossShape = shapeOverride !== null
+          ? shapeOverride % 8
+          : isMini
+            ? (waveNum % 7) + 1
+            : Math.floor(Math.max(0, waveNum / 5 - 1)) % 8;
+        const shapeHpFactor = bossShape === 6 ? 1.15 : bossShape === 7 ? 0.92 : 1.0;
+        const bossHp = isMini
+          ? Math.round((14 + waveNum * 3.5) * hpMult * shapeHpFactor)
+          : Math.round((28 + waveNum * 7.5) * hpMult * shapeHpFactor);
+        return {
+          type: 'boss',
+          isMini,
+          bossShape,
+          bossName: BOSS_NAMES[bossShape] || 'COMMAND BOSS',
+          x,
+          y,
+          w: isMini ? 82 : 118,
+          h: isMini ? 34 : 46,
+          hp: bossHp,
+          maxHp: bossHp,
+          hitFlash: 0,
+          shockTimer: 0,
+          slowTimer: 0,
+          lastVx: 0,
+          lastVy: 0,
+          dir: Math.random() < 0.5 ? 1 : -1,
+          speedMult: isMini ? 1.05 : bossShape === 7 ? 1.35 : 1.15,
+          diveRate: isMini ? 1.8 : 0,
+          turnTimer: 2.0 + Math.random() * 2.5,
+          phase: Math.random() * Math.PI * 2,
+          swayFreq: bossShape === 5 ? 2.8 : 1.9,
+          swayAmp: isMini ? 18 : 24,
+          dashTimer: bossShape === 7 ? 1.5 : 2.2,
+          dashVx: 0,
+          dashVy: 0,
+          dashDuration: 0,
+          bossPattern: 0,
+          pts: isMini ? 420 + waveNum * 35 : 800 + waveNum * 65
+        };
+      }
+
+      function findScatterPos(existing, maxY, boundW = arenaW) {
+        const spanW = Math.max(160, boundW - 108);
+        let bestX = 36 + Math.random() * spanW;
+        let bestY = 30 + Math.random() * Math.max(40, maxY - 30);
+        for (let attempt = 0; attempt < 16; attempt++) {
+          const cx = 36 + Math.random() * spanW;
+          const cy = 28 + Math.random() * Math.max(40, maxY - 28);
+          let tooClose = false;
+          for (const other of existing) {
+            if (Math.hypot(cx - other.x, cy - other.y) < 42) {
+              tooClose = true;
+              break;
+            }
+          }
+          if (!tooClose) {
+            return { x: cx, y: cy };
+          }
+          bestX = cx;
+          bestY = cy;
+        }
+        return { x: bestX, y: bestY };
+      }
+
+      function spawnWave(waveNum) {
+        enemies = [];
+        enemyBullets = [];
+
+        // Zoom out progressively after every Boss Wave (Wave 5, 10, 15...)
+        const bossClears = Math.floor((waveNum - 1) / 5);
+        const prevClears = Math.floor(Math.max(0, waveNum - 2) / 5);
+        targetZoom = Math.max(0.62, 1 / (1 + bossClears * 0.14));
+
+        // Compute target arena dimensions for spawning across the expanded field
+        const spawnW = W / targetZoom;
+        const spawnH = H / targetZoom;
+        arenaW = W / currentZoom;
+        arenaH = H / currentZoom;
+
+        const isBossWave = waveNum % 5 === 0;
+        const hpMult = difficulty === 'hard' ? 1.25 : 1;
+
+        if (isBossWave) {
+          const bossCount = waveNum >= 15 ? 2 : 1;
+          const baseShape = Math.floor(Math.max(0, waveNum / 5 - 1)) % 8;
+          let firstBossName = 'COMMAND BOSS';
+          for (let b = 0; b < bossCount; b++) {
+            const bx = bossCount === 1 ? spawnW / 2 - 59 : (spawnW / (bossCount + 1)) * (b + 1) - 59;
+            const bossObj = makeBoss(bx, 48 + b * 14, waveNum, hpMult, false, (baseShape + b) % 8);
+            if (b === 0) firstBossName = bossObj.bossName;
+            enemies.push(bossObj);
+          }
+          // Boss escorts scale cleanly with total wave count (+ 2 fragile loot couriers)
+          const escortCount = Math.min(14, 3 + Math.floor(waveNum * 0.6));
+          for (let c = 0; c < escortCount; c++) {
+            const pos = findScatterPos(enemies, Math.min(260, spawnH * 0.42), spawnW);
+            const eType = c < 2 ? 'courier' : waveNum >= 10 && c % 2 === 0 ? 'heavy' : 'zigzag';
+            enemies.push(makeEnemy(eType, Math.min(spawnW - 56, pos.x), Math.max(100, pos.y), waveNum, hpMult));
+          }
+          floatingTexts.push({
+            x: spawnW / 2,
+            y: spawnH / 2 - 40,
+            text: `BOSS WAVE ${waveNum} · ${firstBossName}`,
+            life: 1.8,
+            color: '#F59E0B'
+          });
+          return;
+        }
+
+        // Gentle Wave 1 -> escalating swarm + mini-bosses + fragile loot couriers
+        const hostileCount = Math.min(72, 10 + (waveNum - 1) * 4 + bossClears * 4);
+        const maxSpawnY = Math.min(spawnH * 0.46, 125 + waveNum * 9);
+
+        // Add mini-bosses on post-boss higher waves (Wave 7+, scaled by total wave)
+        if (waveNum >= 7) {
+          const miniCount = waveNum >= 14 ? 2 : 1;
+          for (let m = 0; m < miniCount; m++) {
+            const mx = (spawnW / (miniCount + 1)) * (m + 1) - 41;
+            enemies.push(makeBoss(mx, 40 + m * 16, waveNum, hpMult, true, (waveNum + m) % 8));
+          }
+        }
+
+        for (let i = 0; i < hostileCount; i++) {
+          const r = Math.random();
+          let type = 'scout';
+          if (i < 2 || r < 0.16) {
+            type = 'courier';
+          } else if (waveNum >= 4 && r < Math.min(0.36, 0.21 + (waveNum - 3) * 0.018)) {
+            type = 'juggernaut';
+          } else if (waveNum >= 2 && r < Math.min(0.56, 0.30 + (waveNum - 1) * 0.028)) {
+            type = 'heavy';
+          } else if (r < Math.min(0.80, 0.40 + (waveNum - 1) * 0.045)) {
+            type = 'zigzag';
+          }
+
+          const pos = findScatterPos(enemies, maxSpawnY, spawnW);
+          enemies.push(makeEnemy(type, Math.min(spawnW - 56, pos.x), pos.y, waveNum, hpMult));
+        }
+
+        if (bossClears > prevClears) {
+          floatingTexts.push({
+            x: spawnW / 2,
+            y: spawnH / 2 - 58,
+            text: `ARENA ZOOM OUT · ${Math.round(targetZoom * 100)}%`,
+            life: 1.8,
+            color: '#22D3EE'
+          });
+        }
+        floatingTexts.push({
+          x: spawnW / 2,
+          y: spawnH / 2 - 26,
+          text: `WAVE ${String(waveNum).padStart(2, '0')} · ${enemies.length} HOSTILES`,
+          life: 1.3,
+          color: '#10B981'
+        });
+      }
+
+      function startGame() {
+        score = 0;
+        wave = 1;
+        lives = difficulty === 'hard' ? 2 : 3;
+        twinTimer = 0;
+        tripleTimer = 0;
+        rapidTimer = 0;
+        heavyTimer = 0;
+        laserTimer = 0;
+        laserTickTimer = 0;
+        laserBeams = [];
+        invulnTimer = 1.0;
+        targetZoom = 1.0;
+        currentZoom = 1.0;
+        arenaW = W;
+        arenaH = H;
+        upgrades = {
+          ricochet: 0,
+          magnet: 0,
+          thorns: 0,
+          crit: 0,
+          salvage: 0,
+          wingman: 0,
+          overdrive: 0,
+          siphon: 0,
+          orbital: 0,
+          tesla: 0,
+          cryo: 0,
+          nova: 0
+        };
+        salvageKills = 0;
+        wingmanTimer = 0;
+        currentUpgradeOptions = [];
+        bullets = [];
+        enemyBullets = [];
+        particles = [];
+        powerups = [];
+        floatingTexts = [];
+        empEffects = [];
+        shockedGhosts = [];
+        player.x = arenaW / 2;
+        player.y = arenaH - 46;
+        player.cooldown = 0;
+
+        spawnWave(wave);
+        gameState = 'PLAYING';
+
+        document.getElementById('overlay-title').classList.add('hidden');
+        document.getElementById('overlay-paused').classList.add('hidden');
+        document.getElementById('overlay-gameover').classList.add('hidden');
+        document.getElementById('overlay-upgrade').classList.add('hidden');
+        document.getElementById('pause-btn').textContent = 'Pause';
+
+        playTone(440, 880, 0.14, 'triangle', 0.06);
+        updateHud();
+      }
+
+      function togglePause() {
+        if (gameState === 'PLAYING') {
+          gameState = 'PAUSED';
+          document.getElementById('overlay-paused').classList.remove('hidden');
+          document.getElementById('pause-btn').textContent = 'Resume';
+        } else if (gameState === 'PAUSED') {
+          gameState = 'PLAYING';
+          document.getElementById('overlay-paused').classList.add('hidden');
+          document.getElementById('pause-btn').textContent = 'Pause';
+          lastTime = performance.now();
+        }
+      }
+
+      function triggerGameOver() {
+        gameState = 'GAME_OVER';
+        let isNewRecord = false;
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('signal_defender_highscore', String(highScore));
+          isNewRecord = true;
+        }
+        document.getElementById('final-score').textContent = String(score);
+        document.getElementById('final-wave').textContent = String(wave);
+        document.getElementById('new-record-msg').classList.toggle('hidden', !isNewRecord);
+        document.getElementById('overlay-gameover').classList.remove('hidden');
+        playTone(260, 70, 0.4, 'sawtooth', 0.07);
+        updateHud();
+      }
+
+      function spawnBurst(x, y, color, count = 14) {
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const spd = Math.random() * 180 + 40;
+          particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            size: Math.random() * 3 + 1.5,
+            life: Math.random() * 0.4 + 0.25,
+            maxLife: 0.65,
+            color
+          });
+        }
+      }
+
+      function getMaxShields() {
+        return 4 + Math.min(2, upgrades.salvage);
+      }
+
+      function registerKillForSalvage() {
+        if (upgrades.salvage <= 0) return;
+        salvageKills += 1;
+        const threshold = Math.max(8, 18 - (upgrades.salvage - 1) * 3);
+        if (salvageKills >= threshold) {
+          salvageKills = 0;
+          const cap = getMaxShields();
+          if (lives < cap) {
+            lives += 1;
+            floatingTexts.push({ x: player.x, y: player.y - 32, text: 'NANITE +1 SHIELD!', life: 1.15, color: '#10B981' });
+            playTone(520, 980, 0.14, 'triangle', 0.055);
+          } else {
+            score += 200;
+            floatingTexts.push({ x: player.x, y: player.y - 32, text: 'SALVAGE +200', life: 0.9, color: '#10B981' });
+          }
+        }
+      }
+
+      function openUpgradePicker() {
+        gameState = 'UPGRADE_PICK';
+        bullets = [];
+        laserBeams = [];
+        pointerActive = false;
+        keys.left = false;
+        keys.right = false;
+        keys.fire = false;
+
+        const pool = [...PERMANENT_UPGRADES];
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        currentUpgradeOptions = pool.slice(0, 3);
+
+        const container = document.getElementById('upgrade-choices');
+        container.innerHTML = currentUpgradeOptions
+          .map((upg, idx) => {
+            const curLv = upgrades[upg.key] || 0;
+            return `
+              <button
+                type="button"
+                onclick="selectPermanentUpgrade('${upg.key}')"
+                class="group text-left p-4 rounded-xl border border-white/15 bg-[#0E1422] hover:bg-[#141D30] hover:border-amber-400/60 transition-all cursor-pointer flex flex-col justify-between gap-3"
+              >
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-2.5">
+                    <span class="px-2 py-0.5 rounded border text-[11px] font-mono font-bold ${upg.accent}">
+                      ${upg.short} · LV ${curLv + 1}
+                    </span>
+                    <span class="text-[11px] font-mono text-slate-500 group-hover:text-amber-300">[${idx + 1}]</span>
+                  </div>
+                  <h3 class="font-display font-bold text-base text-white group-hover:text-amber-300 transition-colors">
+                    ${upg.name}
+                  </h3>
+                  <p class="text-xs text-slate-300 leading-relaxed mt-1.5">
+                    ${upg.desc}
+                  </p>
+                </div>
+                <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-amber-400">
+                  <span>${curLv > 0 ? `Current: Lv ${curLv}` : 'New Module'}</span>
+                  <span>Install →</span>
+                </div>
+              </button>
+            `;
+          })
+          .join('');
+
+        document.getElementById('overlay-upgrade').classList.remove('hidden');
+        playTone(440, 880, 0.22, 'triangle', 0.06);
+        updateHud();
+      }
+
+      function selectPermanentUpgrade(key) {
+        if (gameState !== 'UPGRADE_PICK') return;
+        const chosen = PERMANENT_UPGRADES.find((u) => u.key === key);
+        if (!chosen) return;
+
+        upgrades[key] = (upgrades[key] || 0) + 1;
+        if (key === 'salvage') {
+          lives = Math.min(getMaxShields(), lives + 1);
+        }
+
+        document.getElementById('overlay-upgrade').classList.add('hidden');
+        wave += 1;
+        spawnWave(wave);
+        invulnTimer = 0.85;
+        gameState = 'PLAYING';
+        lastTime = performance.now();
+
+        floatingTexts.push({
+          x: arenaW / 2,
+          y: arenaH / 2 + 12,
+          text: `PERK INSTALLED: ${chosen.name.toUpperCase()} LV.${upgrades[key]}`,
+          life: 1.7,
+          color: '#34D399'
+        });
+        playTone(580, 1180, 0.2, 'triangle', 0.065);
+        updateHud();
+      }
+
+      function onEnemyKilledEffects(en, isNovaShardKill = false) {
+        registerKillForSalvage();
+
+        // Chrono Siphon: extend active temporary power-up timers on every kill
+        if (upgrades.siphon > 0) {
+          const ext = 0.35 * upgrades.siphon;
+          if (twinTimer > 0) twinTimer += ext;
+          if (tripleTimer > 0) tripleTimer += ext;
+          if (rapidTimer > 0) rapidTimer += ext;
+          if (heavyTimer > 0) heavyTimer += ext;
+          if (laserTimer > 0) laserTimer += ext;
+          score += 15 * upgrades.siphon;
+        }
+
+        // Death Nova Core: burst into radial shrapnel bolts (skip chaining from shrapnel kills to prevent infinite cascades)
+        if (upgrades.nova > 0 && !isNovaShardKill && enemies.length > 1) {
+          const shardCount = 3 + upgrades.nova;
+          const shardDmg = 1 + Math.floor(upgrades.nova / 2);
+          const cx = en.x + en.w / 2;
+          const cy = en.y + en.h / 2;
+          for (let s = 0; s < shardCount; s++) {
+            const ang = (Math.PI * 2 * s) / shardCount + 0.3;
+            bullets.push({
+              x: cx,
+              y: cy,
+              vx: Math.cos(ang) * 440,
+              vy: Math.sin(ang) * 440,
+              dmg: shardDmg,
+              heavy: false,
+              crit: false,
+              wingman: false,
+              novaShard: true,
+              pierceLeft: 0,
+              bouncesLeft: 0,
+              hitSet: [en]
+            });
+          }
+        }
+      }
+
+      function makePlayerBullet(x, y, vx, vy, baseDmg, isHeavy) {
+        const critChance = Math.min(0.72, upgrades.crit * 0.18);
+        const isCrit = critChance > 0 && Math.random() < critChance;
+        const velMult = 1 + upgrades.overdrive * 0.16;
+        return {
+          x,
+          y,
+          vx: vx * velMult,
+          vy: vy * velMult,
+          dmg: isCrit ? baseDmg * 2 : baseDmg,
+          heavy: isHeavy,
+          crit: isCrit,
+          pierceLeft: isCrit ? 1 : 0,
+          bouncesLeft: upgrades.ricochet,
+          hitSet: []
+        };
+      }
+
+      function firePlayerWeapon() {
+        if (player.cooldown > 0) return;
+
+        // Balanced cooldown: base 0.24s, Rapid Capacitor reduces to 0.17s, scaled further by Plasma Overdrive
+        let baseCd = rapidTimer > 0 ? 0.17 : 0.24;
+        if (heavyTimer > 0 && rapidTimer <= 0) baseCd = 0.26;
+        if (upgrades.overdrive > 0) {
+          baseCd *= Math.max(0.42, Math.pow(0.86, upgrades.overdrive));
+        }
+        player.cooldown = baseCd;
+
+        const dmg = heavyTimer > 0 ? 2 : 1;
+        const isHeavy = heavyTimer > 0;
+
+        if (tripleTimer > 0) {
+          bullets.push(makePlayerBullet(player.x, player.y - 14, 0, -580, dmg, isHeavy));
+          bullets.push(makePlayerBullet(player.x - 10, player.y - 10, -65, -565, dmg, isHeavy));
+          bullets.push(makePlayerBullet(player.x + 10, player.y - 10, 65, -565, dmg, isHeavy));
+          playTone(760, 320, 0.09, 'square', 0.045);
+        } else if (twinTimer > 0) {
+          bullets.push(makePlayerBullet(player.x - 9, player.y - 12, 0, -580, dmg, isHeavy));
+          bullets.push(makePlayerBullet(player.x + 9, player.y - 12, 0, -580, dmg, isHeavy));
+          playTone(720, 300, 0.08, 'square', 0.045);
+        } else {
+          bullets.push(makePlayerBullet(player.x, player.y - 14, 0, -580, dmg, isHeavy));
+          playTone(680, 280, 0.08, 'square', 0.045);
+        }
+      }
+
+      // Keyboard Controls
+      window.addEventListener('keydown', (e) => {
+        if (gameState === 'UPGRADE_PICK') {
+          if (e.key === '1' && currentUpgradeOptions[0]) selectPermanentUpgrade(currentUpgradeOptions[0].key);
+          if (e.key === '2' && currentUpgradeOptions[1]) selectPermanentUpgrade(currentUpgradeOptions[1].key);
+          if (e.key === '3' && currentUpgradeOptions[2]) selectPermanentUpgrade(currentUpgradeOptions[2].key);
+          return;
+        }
+        if (['ArrowLeft', 'ArrowRight', 'Space', ' '].includes(e.key) && gameState === 'PLAYING') {
+          e.preventDefault();
+        }
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+        if (e.key === ' ' || e.code === 'Space') keys.fire = true;
+        if ((e.key === 'p' || e.key === 'P') && (gameState === 'PLAYING' || gameState === 'PAUSED')) {
+          togglePause();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+        if (e.key === ' ' || e.code === 'Space') keys.fire = false;
+      });
+
+      // Mouse / Touch Controls on Canvas
+      canvas.addEventListener('pointerdown', (e) => {
+        if (gameState !== 'PLAYING') return;
+        pointerActive = true;
+        const rect = canvas.getBoundingClientRect();
+        pointerX = ((e.clientX - rect.left) / rect.width) * arenaW;
+        if (laserTimer <= 0) firePlayerWeapon();
+      });
+
+      canvas.addEventListener('pointermove', (e) => {
+        if (gameState !== 'PLAYING' || !pointerActive) return;
+        const rect = canvas.getBoundingClientRect();
+        pointerX = ((e.clientX - rect.left) / rect.width) * arenaW;
+      });
+
+      window.addEventListener('pointerup', () => {
+        pointerActive = false;
+      });
+
+      function dropPowerup(x, y) {
+        const roll = Math.random();
+        let kind = 'twin';
+        if (roll < 0.24) {
+          // 2X upgrades to 3X only if 2X is already active (gradual progression, not instant OP)
+          kind = twinTimer > 0 && wave >= 2 ? 'triple' : 'twin';
+        } else if (roll < 0.45) {
+          kind = 'rapid';
+        } else if (roll < 0.65) {
+          kind = 'heavy';
+        } else if (roll < 0.80) {
+          kind = 'laser';
+        } else if (roll < 0.91) {
+          kind = 'emp';
+        } else {
+          kind = 'shield';
+        }
+        powerups.push({ x, y, kind, vy: 115 });
+      }
+
+      function destroyEnemy(index, en, isNovaShardKill = false) {
+        score += en.pts;
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem('signal_defender_highscore', String(highScore));
+        }
+        const color =
+          en.type === 'boss'
+            ? '#F59E0B'
+            : en.type === 'juggernaut'
+              ? '#FB7185'
+              : en.type === 'heavy'
+                ? '#38BDF8'
+                : en.type === 'courier'
+                  ? '#A3E635'
+                  : '#10B981';
+        spawnBurst(en.x + en.w / 2, en.y + en.h / 2, color, en.type === 'boss' ? 40 : 14);
+        floatingTexts.push({ x: en.x + en.w / 2, y: en.y, text: `+${en.pts}`, life: 0.7, color });
+        playTone(220, 90, 0.12, 'triangle', 0.06);
+
+        // Drop Power-Ups (75% on fragile Courier bot, 12% standard, 100% x2 on Boss)
+        if (en.type === 'boss') {
+          dropPowerup(en.x + en.w * 0.3, en.y + en.h / 2);
+          dropPowerup(en.x + en.w * 0.7, en.y + en.h / 2);
+        } else if (en.type === 'courier') {
+          if (Math.random() < 0.75) {
+            dropPowerup(en.x + en.w / 2, en.y + en.h / 2);
+          }
+        } else if (Math.random() < 0.12) {
+          dropPowerup(en.x + en.w / 2, en.y + en.h / 2);
+        }
+        enemies.splice(index, 1);
+        onEnemyKilledEffects(en, isNovaShardKill);
+      }
+
+      function applyPowerup(kind) {
+        const durMult = 1 + upgrades.magnet * 0.22;
+        if (kind === 'twin') {
+          if (tripleTimer > 0) {
+            const add = 8.5 * durMult;
+            tripleTimer += add;
+            floatingTexts.push({ x: player.x, y: player.y - 24, text: `3X +${add.toFixed(1)}s`, life: 1.0, color: '#38BDF8' });
+          } else if (twinTimer > 0 && wave >= 2) {
+            const add = 8.5 * durMult;
+            tripleTimer += add;
+            twinTimer = 0;
+            floatingTexts.push({ x: player.x, y: player.y - 24, text: '3X UPGRADE!', life: 1.0, color: '#38BDF8' });
+          } else {
+            const wasActive = twinTimer > 0;
+            const add = 11.5 * durMult;
+            twinTimer += add;
+            floatingTexts.push({ x: player.x, y: player.y - 24, text: wasActive ? `2X +${add.toFixed(1)}s` : '2X TWIN PULSE', life: 1.0, color: '#38BDF8' });
+          }
+        } else if (kind === 'triple') {
+          const wasActive = tripleTimer > 0;
+          const add = 8.5 * durMult;
+          tripleTimer += add;
+          floatingTexts.push({ x: player.x, y: player.y - 24, text: wasActive ? `3X +${add.toFixed(1)}s` : '3X TRIPLE FAN', life: 1.0, color: '#38BDF8' });
+        } else if (kind === 'rapid') {
+          const wasActive = rapidTimer > 0;
+          const add = 10.5 * durMult;
+          rapidTimer += add;
+          floatingTexts.push({ x: player.x, y: player.y - 24, text: wasActive ? `SPD +${add.toFixed(1)}s` : 'RAPID FIRE', life: 1.0, color: '#F59E0B' });
+        } else if (kind === 'heavy') {
+          const wasActive = heavyTimer > 0;
+          const add = 9.5 * durMult;
+          heavyTimer += add;
+          floatingTexts.push({ x: player.x, y: player.y - 24, text: wasActive ? `HVY +${add.toFixed(1)}s` : 'HEAVY BOLT (2 DMG)', life: 1.0, color: '#A78BFA' });
+        } else if (kind === 'laser') {
+          const wasActive = laserTimer > 0;
+          const add = 6.5 * durMult;
+          laserTimer += add;
+          if (!wasActive) laserTickTimer = 0;
+          floatingTexts.push({ x: player.x, y: player.y - 24, text: wasActive ? `LSR +${add.toFixed(1)}s` : 'LASER BEAM!', life: 1.1, color: '#22D3EE' });
+        } else if (kind === 'shield') {
+          lives = Math.min(getMaxShields(), lives + 1);
+          floatingTexts.push({ x: player.x, y: player.y - 24, text: '+1 SHIELD', life: 1.0, color: '#10B981' });
+        } else if (kind === 'emp') {
+          // Electric EMP shockwave: clears enemy projectiles, chains lightning bolts, and electrocutes kills
+          enemyBullets = [];
+          spawnBurst(player.x, player.y - 14, '#38BDF8', 22);
+          playTone(1150, 130, 0.24, 'sawtooth', 0.065);
+          empEffects.push({
+            kind: 'ring',
+            x: player.x,
+            y: player.y,
+            radius: 18,
+            maxRadius: arenaW * 0.95,
+            life: 0.45,
+            maxLife: 0.45
+          });
+
+          for (let j = enemies.length - 1; j >= 0; j--) {
+            const en = enemies[j];
+            const ex = en.x + en.w / 2;
+            const ey = en.y + en.h / 2;
+            empEffects.push({
+              kind: 'bolt',
+              x1: player.x,
+              y1: player.y - 12,
+              x2: ex,
+              y2: ey,
+              life: 0.38,
+              maxLife: 0.38
+            });
+            en.hp -= 2;
+            en.hitFlash = 0.16;
+            en.shockTimer = 0.5;
+            if (en.hp <= 0) {
+              score += en.pts;
+              if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('signal_defender_highscore', String(highScore));
+              }
+              floatingTexts.push({ x: ex, y: en.y, text: `+${en.pts}`, life: 0.75, color: '#38BDF8' });
+              shockedGhosts.push({
+                x: en.x,
+                y: en.y,
+                w: en.w,
+                h: en.h,
+                type: en.type,
+                life: 0.52,
+                maxLife: 0.52
+              });
+              if (en.type === 'boss') {
+                dropPowerup(en.x + en.w * 0.3, ey);
+                dropPowerup(en.x + en.w * 0.7, ey);
+              } else if (en.type === 'courier') {
+                if (Math.random() < 0.75) dropPowerup(ex, ey);
+              } else if (Math.random() < 0.12) {
+                dropPowerup(ex, ey);
+              }
+              enemies.splice(j, 1);
+              onEnemyKilledEffects(en, false);
+            }
+          }
+          floatingTexts.push({ x: player.x, y: player.y - 24, text: 'EMP OVERLOAD!', life: 1.15, color: '#38BDF8' });
+        }
+      }
+
+      function updateGame(dt) {
+        if (gameState !== 'PLAYING') return;
+
+        // Smooth camera zoom-out transition after clearing Boss Waves
+        if (Math.abs(currentZoom - targetZoom) > 0.0005) {
+          const prevW = arenaW;
+          currentZoom += (targetZoom - currentZoom) * Math.min(1, dt * 3.8);
+          arenaW = W / currentZoom;
+          arenaH = H / currentZoom;
+          player.x = (player.x / prevW) * arenaW;
+          player.y = arenaH - 46;
+        }
+
+        if (twinTimer > 0) twinTimer = Math.max(0, twinTimer - dt);
+        if (tripleTimer > 0) tripleTimer = Math.max(0, tripleTimer - dt);
+        if (rapidTimer > 0) rapidTimer = Math.max(0, rapidTimer - dt);
+        if (heavyTimer > 0) heavyTimer = Math.max(0, heavyTimer - dt);
+        if (laserTimer > 0) laserTimer = Math.max(0, laserTimer - dt);
+        if (laserTickTimer > 0) laserTickTimer = Math.max(0, laserTickTimer - dt);
+        if (invulnTimer > 0) invulnTimer = Math.max(0, invulnTimer - dt);
+        if (player.cooldown > 0) player.cooldown = Math.max(0, player.cooldown - dt);
+
+        // Phase Aegis recharge timer
+        if (upgrades.aegis > 0 && !aegisReady) {
+          aegisTimer -= dt;
+          if (aegisTimer <= 0) {
+            aegisReady = true;
+            floatingTexts.push({ x: player.x, y: player.y - 26, text: 'PHASE AEGIS READY', life: 0.9, color: '#818CF8' });
+          }
+        }
+
+        // Move Player (snappy & responsive, boosted by Shock-Armor upgrade)
+        const effSpeed = player.speed * (1 + upgrades.thorns * 0.12);
+        if (keys.left || touchState.left) player.x -= effSpeed * dt;
+        if (keys.right || touchState.right) player.x += effSpeed * dt;
+        if (pointerActive) {
+          const diff = pointerX - player.x;
+          player.x += Math.sign(diff) * Math.min(Math.abs(diff), effSpeed * dt * 1.75);
+        }
+        player.x = Math.max(28, Math.min(arenaW - 28, player.x));
+
+        // Fire Weapon OR Multi-Beam Laser (Synergizes with 2X, 3X, HVY, and SPD)
+        const firingHeld = keys.fire || touchState.fire || pointerActive;
+        if (laserTimer > 0 && firingHeld) {
+          const isHeavy = heavyTimer > 0;
+          const beamHalfW = isHeavy ? 9 : 6;
+          const beamDmg = isHeavy ? 2 : 1;
+          const tickInterval = rapidTimer > 0 ? 0.11 : 0.15;
+
+          const beamSpecs = [];
+          if (tripleTimer > 0) {
+            beamSpecs.push({ x0: player.x - 10, y0: player.y - 12, slope: -0.15 });
+            beamSpecs.push({ x0: player.x, y0: player.y - 16, slope: 0 });
+            beamSpecs.push({ x0: player.x + 10, y0: player.y - 12, slope: 0.15 });
+          } else if (twinTimer > 0) {
+            beamSpecs.push({ x0: player.x - 10, y0: player.y - 14, slope: 0 });
+            beamSpecs.push({ x0: player.x + 10, y0: player.y - 14, slope: 0 });
+          } else {
+            beamSpecs.push({ x0: player.x, y0: player.y - 16, slope: 0 });
+          }
+
+          laserBeams = [];
+          const dmgMap = new Map();
+          const impactSparks = [];
+
+          for (const spec of beamSpecs) {
+            const hits = [];
+            for (const en of enemies) {
+              if (en.y + en.h >= player.y - 8) continue;
+              const bxBot = spec.x0 + (spec.y0 - (en.y + en.h)) * spec.slope;
+              const bxTop = spec.x0 + (spec.y0 - en.y) * spec.slope;
+              const minBx = Math.min(bxBot, bxTop) - beamHalfW;
+              const maxBx = Math.max(bxBot, bxTop) + beamHalfW;
+              if (maxBx >= en.x && minBx <= en.x + en.w) {
+                hits.push({ en, distY: spec.y0 - (en.y + en.h) });
+              }
+            }
+            hits.sort((a, b) => a.distY - b.distY);
+
+            let endY = 0;
+            let struckCount = 0;
+            for (const h of hits) {
+              struckCount += 1;
+              endY = h.en.y + h.en.h;
+              dmgMap.set(h.en, (dmgMap.get(h.en) || 0) + beamDmg);
+              const hitX = spec.x0 + (spec.y0 - endY) * spec.slope;
+              impactSparks.push({ x: hitX, y: endY });
+              if (h.en.type === 'heavy' || h.en.type === 'juggernaut' || h.en.type === 'boss' || struckCount >= 2) {
+                break;
+              }
+            }
+
+            const endX = spec.x0 + (spec.y0 - endY) * spec.slope;
+            laserBeams.push({
+              x0: spec.x0,
+              y0: spec.y0,
+              endX,
+              endY,
+              width: beamHalfW * 2,
+              heavy: isHeavy
+            });
+          }
+
+          if (laserTickTimer <= 0) {
+            laserTickTimer = tickInterval;
+            if (dmgMap.size > 0) {
+              for (const sp of impactSparks) {
+                spawnBurst(sp.x, sp.y, isHeavy ? '#A78BFA' : '#22D3EE', 3);
+              }
+              for (let j = enemies.length - 1; j >= 0; j--) {
+                const en = enemies[j];
+                const d = dmgMap.get(en);
+                if (d) {
+                  en.hp -= d;
+                  en.hitFlash = 0.08;
+                  if (en.hp <= 0) {
+                    destroyEnemy(j, en);
+                  }
+                }
+              }
+              playTone(isHeavy ? 780 : 960, 400, 0.05, 'sawtooth', 0.03);
+            } else {
+              playTone(620, 560, 0.04, 'sine', 0.02);
+            }
+          }
+        } else {
+          laserBeams = [];
+          if (firingHeld) {
+            firePlayerWeapon();
+          }
+        }
+
+        // High-Accuracy Predictive & Homing Wingman Drones (more shots, higher dmg)
+        if (upgrades.wingman > 0 && enemies.length > 0) {
+          wingmanTimer -= dt;
+          if (wingmanTimer <= 0) {
+            wingmanTimer = Math.max(0.18, 0.44 - (upgrades.wingman - 1) * 0.08);
+            const podCount = Math.min(4, 1 + upgrades.wingman);
+            const wingDmg = 2 + (upgrades.wingman - 1);
+            const nowOrb = performance.now() * 0.003;
+            const wingOffsets = podCount === 2 ? [-34, 34] : podCount === 3 ? [-42, 0, 42] : [-50, -24, 24, 50];
+            for (let d = 0; d < podCount; d++) {
+              const px = player.x + wingOffsets[d];
+              const py = player.y - (d % 2 === 0 ? 6 : 16) + Math.sin(nowOrb + d * 1.6) * 4;
+              // Prioritize threats closest to bottom or nearest to drone
+              let best = null;
+              let bestScore = Infinity;
+              for (const en of enemies) {
+                const dist = Math.hypot(en.x + en.w / 2 - px, en.y + en.h / 2 - py);
+                const dangerBias = Math.max(0.55, 1 - (en.y / arenaH) * 0.45);
+                if (dist * dangerBias < bestScore) {
+                  bestScore = dist * dangerBias;
+                  best = en;
+                }
+              }
+              if (best) {
+                const bx = best.x + best.w / 2;
+                const by = best.y + best.h / 2;
+                const dist = Math.hypot(bx - px, by - py);
+                const leadT = Math.min(0.45, dist / 780);
+                const tx = bx + (best.lastVx || 0) * leadT * 0.85;
+                const ty = by + (best.lastVy || 0) * leadT * 0.85;
+                const ang = Math.atan2(ty - py, tx - px);
+                bullets.push({
+                  x: px,
+                  y: py,
+                  vx: Math.cos(ang) * 780,
+                  vy: Math.sin(ang) * 780,
+                  dmg: wingDmg,
+                  heavy: false,
+                  crit: false,
+                  wingman: true,
+                  homingTarget: best,
+                  pierceLeft: 0,
+                  bouncesLeft: upgrades.ricochet,
+                  hitSet: []
+                });
+              }
+            }
+          }
+        }
+
+        // Update Player Bullets (with Wingman live homing & Ricochet wall bounce)
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          if (b.wingman && enemies.length > 0) {
+            let tgt = b.homingTarget;
+            if (!tgt || !enemies.includes(tgt) || (b.hitSet && b.hitSet.includes(tgt))) {
+              let minDist = Infinity;
+              tgt = null;
+              for (const cand of enemies) {
+                if (b.hitSet && b.hitSet.includes(cand)) continue;
+                const dist = Math.hypot(cand.x + cand.w / 2 - b.x, cand.y + cand.h / 2 - b.y);
+                if (dist < minDist) {
+                  minDist = dist;
+                  tgt = cand;
+                }
+              }
+              b.homingTarget = tgt;
+            }
+            if (tgt) {
+              const spd = Math.hypot(b.vx, b.vy) || 780;
+              const desiredAng = Math.atan2(tgt.y + tgt.h / 2 - b.y, tgt.x + tgt.w / 2 - b.x);
+              const curAng = Math.atan2(b.vy, b.vx);
+              let diff = desiredAng - curAng;
+              while (diff > Math.PI) diff -= Math.PI * 2;
+              while (diff < -Math.PI) diff += Math.PI * 2;
+              const maxTurn = 6.2 * dt;
+              const newAng = curAng + Math.sign(diff) * Math.min(Math.abs(diff), maxTurn);
+              b.vx = Math.cos(newAng) * spd;
+              b.vy = Math.sin(newAng) * spd;
+            }
+          }
+
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+          if (b.bouncesLeft > 0) {
+            if (b.x <= 6) {
+              b.x = 6;
+              b.vx = Math.abs(b.vx);
+              b.bouncesLeft -= 1;
+            } else if (b.x >= arenaW - 6) {
+              b.x = arenaW - 6;
+              b.vx = -Math.abs(b.vx);
+              b.bouncesLeft -= 1;
+            }
+            if (b.y <= 6 && b.vy < 0) {
+              b.y = 6;
+              b.vy = Math.abs(b.vy);
+              b.bouncesLeft -= 1;
+            }
+          }
+          if (b.y < -25 || b.y > arenaH + 25 || b.x < -25 || b.x > arenaW + 25) {
+            bullets.splice(i, 1);
+          }
+        }
+
+        // Orbital Saw Shield collision with enemy bullets & diving bots
+        if (upgrades.orbital > 0 && gameState === 'PLAYING') {
+          const sawCount = 1 + upgrades.orbital;
+          const sawOrbitR = 44;
+          const sawDmg = 2 * upgrades.orbital;
+          const nowSaw = performance.now() * 0.0045;
+          for (let s = 0; s < sawCount; s++) {
+            const ang = nowSaw + (Math.PI * 2 * s) / sawCount;
+            const sx = player.x + Math.cos(ang) * sawOrbitR;
+            const sy = player.y + Math.sin(ang) * sawOrbitR;
+            for (let ebIdx = enemyBullets.length - 1; ebIdx >= 0; ebIdx--) {
+              const eb = enemyBullets[ebIdx];
+              if (Math.hypot(eb.x - sx, eb.y - sy) < 13) {
+                spawnBurst(eb.x, eb.y, '#E879F9', 4);
+                enemyBullets.splice(ebIdx, 1);
+              }
+            }
+            for (let eIdx = enemies.length - 1; eIdx >= 0; eIdx--) {
+              const en = enemies[eIdx];
+              if (sx >= en.x - 9 && sx <= en.x + en.w + 9 && sy >= en.y - 9 && sy <= en.y + en.h + 9) {
+                if (en.hitFlash <= 0) {
+                  en.hp -= sawDmg;
+                  en.hitFlash = 0.14;
+                  spawnBurst(sx, sy, '#E879F9', 6);
+                  if (en.hp <= 0) destroyEnemy(eIdx, en);
+                }
+              }
+            }
+          }
+        }
+
+        // Move Enemies Independently (Wave-proportional difficulty & speed + Cryo slow)
+        const nowSec = performance.now() * 0.001;
+        const baseSpeed = (difficulty === 'hard' ? 52 : 34) + wave * 4.2 + Math.max(0, (18 - enemies.length) * 0.9);
+        const dashChance = Math.min(0.75, (difficulty === 'hard' ? 0.28 : 0.12) + wave * 0.04);
+
+        for (const en of enemies) {
+          const prevEx = en.x;
+          const prevEy = en.y;
+          if (en.hitFlash > 0) en.hitFlash = Math.max(0, en.hitFlash - dt);
+          if (en.shockTimer > 0) en.shockTimer = Math.max(0, en.shockTimer - dt);
+          if (en.slowTimer > 0) en.slowTimer = Math.max(0, en.slowTimer - dt);
+
+          const chillFactor = en.slowTimer > 0 ? Math.max(0.35, 1 - (0.38 + Math.max(0, upgrades.cryo - 1) * 0.1)) : 1.0;
+          const eDt = dt * chillFactor;
+
+          // Autonomous random direction flips & speed shifts
+          en.turnTimer -= eDt;
+          if (en.turnTimer <= 0) {
+            en.turnTimer = 1.2 + Math.random() * 3.2;
+            if (Math.random() < 0.65) en.dir *= -1;
+            en.speedMult = en.type === 'courier' ? 0.55 + Math.random() * 0.35 : 0.72 + Math.random() * 0.72;
+          }
+
+          // Horizontal patrol + per-bot wave oscillation
+          en.x += en.dir * baseSpeed * en.speedMult * eDt;
+          if (en.type === 'boss') {
+            const maxBossY = en.isMini ? arenaH * 0.42 : arenaH * 0.24;
+            en.y = Math.max(32, Math.min(maxBossY, en.y + (en.diveRate + Math.sin(nowSec * en.swayFreq + en.phase) * en.swayAmp) * eDt));
+            en.x += Math.cos(nowSec * (en.bossShape === 5 ? 3.2 : 2.5) + en.phase) * 48 * eDt;
+          } else {
+            en.y += (en.diveRate + Math.sin(nowSec * en.swayFreq + en.phase) * en.swayAmp) * eDt;
+            if (en.type === 'zigzag' || en.type === 'scout') {
+              en.x += Math.cos(nowSec * (en.swayFreq * 0.9) + en.phase) * 30 * eDt;
+            }
+          }
+
+          // Unpredictable evasive strafe / diagonal swoop bursts (courier stays gentle)
+          en.dashTimer -= eDt;
+          if (en.dashDuration > 0) {
+            en.dashDuration -= eDt;
+            en.x += en.dashVx * eDt;
+            if (en.y + en.h < player.y - 105) {
+              en.y += en.dashVy * eDt;
+            }
+          } else if (en.dashTimer <= 0 && en.type !== 'courier') {
+            const hardBias = difficulty === 'hard' ? 0.75 : 1.0;
+            en.dashTimer = Math.max(1.1, (3.0 - wave * 0.12) + Math.random() * 3.6) * hardBias;
+            if (en.type === 'boss') {
+              const dashSpd = en.bossShape === 7 ? 210 : 140;
+              en.dashVx = (Math.random() < 0.5 ? -1 : 1) * (dashSpd + Math.random() * 85);
+              en.dashVy = 0;
+              en.dashDuration = 0.45 + Math.random() * 0.35;
+            } else if (Math.random() < dashChance) {
+              en.dashVx = (Math.random() < 0.5 ? -1 : 1) * (75 + Math.random() * 75);
+              en.dashVy = (Math.random() < 0.6 ? 1 : -0.65) * (24 + Math.random() * 28);
+              en.dashDuration = 0.4 + Math.random() * 0.45;
+            }
+          }
+
+          // Individual edge bounce across expanded arena
+          if (en.x <= 16) {
+            en.x = 16;
+            en.dir = 1;
+            if (en.dashVx < 0) en.dashVx *= -1;
+            if (en.type !== 'boss') en.y += 5;
+          } else if (en.x + en.w >= arenaW - 16) {
+            en.x = arenaW - 16 - en.w;
+            en.dir = -1;
+            if (en.dashVx > 0) en.dashVx *= -1;
+            if (en.type !== 'boss') en.y += 5;
+          }
+          if (en.y < 24) en.y = 24;
+
+          if (dt > 0.0001) {
+            en.lastVx = (en.x - prevEx) / dt;
+            en.lastVy = (en.y - prevEy) / dt;
+          }
+
+          if (en.y + en.h >= player.y - 6) {
+            lives = 0;
+            triggerGameOver();
+            return;
+          }
+        }
+
+        // Enemy Shooting (Wave-proportional fire rate & Boss-specific attack patterns)
+        enemyShootTimer -= dt;
+        const fireRate = Math.max(0.28, (difficulty === 'hard' ? 1.25 : 1.72) - wave * 0.075);
+        if (enemyShootTimer <= 0 && enemies.length > 0) {
+          enemyShootTimer = fireRate * (0.55 + Math.random() * 0.85);
+          const shooter = enemies[Math.floor(Math.random() * enemies.length)];
+          const bSpeed = (difficulty === 'hard' ? 255 : 195) + Math.min(110, wave * 8);
+          const sx = shooter.x + shooter.w / 2;
+          const sy = shooter.y + shooter.h;
+
+          if (shooter.type === 'boss') {
+            shooter.bossPattern = ((shooter.bossPattern || 0) + 1) % 3;
+            const bShape = shooter.bossShape || 0;
+            if (bShape === 4 && shooter.bossPattern === 0) {
+              // Solar Monolith: 4-way diagonal + twin center rails
+              [-130, -35, 35, 130].forEach((vx) => enemyBullets.push({ x: sx, y: sy, vx, vy: bSpeed + 35 }));
+            } else if (bShape === 5 && shooter.bossPattern === 1) {
+              // Viper Hydra: staggered twin aimed fangs
+              const dx = player.x - sx;
+              const dy = Math.max(80, player.y - sy);
+              const aimVx = Math.max(-210, Math.min(210, (dx / dy) * (bSpeed + 45)));
+              enemyBullets.push({ x: shooter.x + 18, y: sy, vx: aimVx, vy: bSpeed + 45 });
+              enemyBullets.push({ x: shooter.x + shooter.w - 18, y: sy, vx: aimVx, vy: bSpeed + 45 });
+            } else if (bShape === 6 && shooter.bossPattern === 0) {
+              // Crimson Citadel: 6-shot heavy fortress barrage
+              [-140, -84, -28, 28, 84, 140].forEach((vx) => enemyBullets.push({ x: sx, y: sy, vx, vy: bSpeed + 10 }));
+            } else if (bShape === 7 && shooter.bossPattern === 2) {
+              // Phantom Eclipse: wide inward pincer crossfire
+              enemyBullets.push({ x: shooter.x + 10, y: sy, vx: 85, vy: bSpeed + 30 });
+              enemyBullets.push({ x: shooter.x + shooter.w - 10, y: sy, vx: -85, vy: bSpeed + 30 });
+              enemyBullets.push({ x: sx, y: sy, vx: 0, vy: bSpeed + 55 });
+            } else if (shooter.bossPattern === 0) {
+              const spread = difficulty === 'hard' || wave >= 10 ? [-110, -55, 0, 55, 110] : [-65, 0, 65];
+              for (const vx of spread) {
+                enemyBullets.push({ x: sx, y: sy, vx, vy: bSpeed + (vx === 0 ? 25 : 0) });
+              }
+            } else if (shooter.bossPattern === 1) {
+              const dx = player.x - sx;
+              const dy = Math.max(80, player.y - sy);
+              const aimVx = Math.max(-190, Math.min(190, (dx / dy) * bSpeed));
+              enemyBullets.push({ x: sx - 16, y: sy, vx: aimVx - 20, vy: bSpeed + 35 });
+              enemyBullets.push({ x: sx + 16, y: sy, vx: aimVx + 20, vy: bSpeed + 35 });
+            } else {
+              enemyBullets.push({ x: shooter.x + 16, y: sy, vx: -40 + (Math.random() - 0.5) * 40, vy: bSpeed + 15 });
+              enemyBullets.push({ x: shooter.x + shooter.w - 16, y: sy, vx: 40 + (Math.random() - 0.5) * 40, vy: bSpeed + 15 });
+            }
+          } else if (shooter.type === 'juggernaut' && Math.random() < 0.55) {
+            enemyBullets.push({ x: sx - 6, y: sy, vx: -42, vy: bSpeed });
+            enemyBullets.push({ x: sx + 6, y: sy, vx: 42, vy: bSpeed });
+          } else {
+            const aimChance = Math.min(0.65, (difficulty === 'hard' ? 0.22 : 0.08) + wave * 0.038);
+            let vx = 0;
+            if (Math.random() < aimChance) {
+              const dx = player.x - sx + (Math.random() - 0.5) * 60;
+              const dy = Math.max(90, player.y - sy);
+              vx = Math.max(-145, Math.min(145, (dx / dy) * bSpeed));
+            }
+            enemyBullets.push({ x: sx, y: sy, vx, vy: bSpeed });
+          }
+        }
+
+        // Update Enemy Bullets & Check Player Hit
+        for (let i = enemyBullets.length - 1; i >= 0; i--) {
+          const eb = enemyBullets[i];
+          eb.x += eb.vx * dt;
+          eb.y += eb.vy * dt;
+          if (eb.y > arenaH + 15) {
+            enemyBullets.splice(i, 1);
+            continue;
+          }
+          if (
+            invulnTimer <= 0 &&
+            eb.x > player.x - player.w / 2 + 4 &&
+            eb.x < player.x + player.w / 2 - 4 &&
+            eb.y > player.y - player.h / 2 &&
+            eb.y < player.y + player.h / 2
+          ) {
+            enemyBullets.splice(i, 1);
+            lives -= 1;
+            invulnTimer = 1.6;
+            spawnBurst(player.x, player.y, '#EF4444', 22);
+            playTone(180, 55, 0.25, 'sawtooth', 0.08);
+
+            // Reactive Shock-Armor discharge on hit
+            if (upgrades.thorns > 0 && lives > 0) {
+              const novaR = 190 + upgrades.thorns * 40;
+              const shockDmg = 2 * upgrades.thorns;
+              empEffects.push({
+                kind: 'ring',
+                x: player.x,
+                y: player.y,
+                radius: 20,
+                maxRadius: novaR,
+                life: 0.38,
+                maxLife: 0.38
+              });
+              for (let ebIdx = enemyBullets.length - 1; ebIdx >= 0; ebIdx--) {
+                const other = enemyBullets[ebIdx];
+                if (Math.hypot(other.x - player.x, other.y - player.y) <= novaR) {
+                  enemyBullets.splice(ebIdx, 1);
+                }
+              }
+              for (let k = enemies.length - 1; k >= 0; k--) {
+                const en = enemies[k];
+                if (Math.hypot(en.x + en.w / 2 - player.x, en.y + en.h / 2 - player.y) <= novaR) {
+                  en.hp -= shockDmg;
+                  en.shockTimer = 0.45;
+                  en.hitFlash = 0.12;
+                  if (en.hp <= 0) destroyEnemy(k, en);
+                }
+              }
+              floatingTexts.push({ x: player.x, y: player.y - 26, text: 'SHOCK ARMOR!', life: 1.0, color: '#FB7185' });
+            }
+
+            if (lives <= 0) {
+              triggerGameOver();
+              return;
+            }
+          }
+        }
+
+        // Check Bullet-Enemy Collisions (supports Crit Pierce & Enemy Ricochet)
+        for (let i = bullets.length - 1; i >= 0; i--) {
+          const b = bullets[i];
+          let removeBullet = false;
+          for (let j = enemies.length - 1; j >= 0; j--) {
+            const en = enemies[j];
+            if (b.hitSet && b.hitSet.includes(en)) continue;
+            if (b.x >= en.x && b.x <= en.x + en.w && b.y >= en.y && b.y <= en.y + en.h) {
+              en.hp -= b.dmg;
+              en.hitFlash = 0.07;
+              if (upgrades.cryo > 0) en.slowTimer = 2.6;
+              if (b.hitSet) b.hitSet.push(en);
+              const hitX = en.x + en.w / 2;
+              const hitY = en.y + en.h / 2;
+              if (en.hp <= 0) {
+                destroyEnemy(j, en, Boolean(b.novaShard));
+              } else {
+                spawnBurst(b.x, b.y, b.crit ? '#FDE047' : b.wingman ? '#22D3EE' : b.heavy ? '#A78BFA' : '#F8FAFC', b.crit ? 7 : 4);
+                playTone(b.crit ? 520 : 340, 260, 0.045, 'sine', 0.035);
+              }
+
+              // Tesla Arc Coil: chance to zap nearby enemies with chain lightning
+              if (upgrades.tesla > 0 && !b.novaShard && enemies.length > 0 && Math.random() < Math.min(0.84, upgrades.tesla * 0.28)) {
+                const maxArcs = 1 + upgrades.tesla;
+                const targets = [];
+                for (const cand of enemies) {
+                  if (cand === en) continue;
+                  const dist = Math.hypot(cand.x + cand.w / 2 - hitX, cand.y + cand.h / 2 - hitY);
+                  if (dist <= 210) targets.push({ cand, dist });
+                }
+                targets.sort((a, b2) => a.dist - b2.dist);
+                for (let t = 0; t < Math.min(maxArcs, targets.length); t++) {
+                  const other = targets[t].cand;
+                  const ox = other.x + other.w / 2;
+                  const oy = other.y + other.h / 2;
+                  empEffects.push({ kind: 'bolt', x1: hitX, y1: hitY, x2: ox, y2: oy, life: 0.24, maxLife: 0.24 });
+                  other.hp -= 2;
+                  other.shockTimer = 0.28;
+                  other.hitFlash = 0.08;
+                  if (other.hp <= 0) {
+                    const oIdx = enemies.indexOf(other);
+                    if (oIdx !== -1) destroyEnemy(oIdx, other);
+                  }
+                }
+              }
+
+              if (b.pierceLeft > 0) {
+                b.pierceLeft -= 1;
+              } else if (b.bouncesLeft > 0) {
+                b.bouncesLeft -= 1;
+                // Ricochet toward nearest other hostile or reflect diagonally
+                let nextTarget = null;
+                let minD = 320;
+                for (const cand of enemies) {
+                  if (b.hitSet && b.hitSet.includes(cand)) continue;
+                  const dist = Math.hypot(cand.x + cand.w / 2 - b.x, cand.y + cand.h / 2 - b.y);
+                  if (dist < minD) {
+                    minD = dist;
+                    nextTarget = cand;
+                  }
+                }
+                const spd = Math.hypot(b.vx, b.vy) || 560;
+                if (nextTarget) {
+                  const ang = Math.atan2(nextTarget.y + nextTarget.h / 2 - b.y, nextTarget.x + nextTarget.w / 2 - b.x);
+                  b.vx = Math.cos(ang) * spd;
+                  b.vy = Math.sin(ang) * spd;
+                } else {
+                  b.vx = (b.vx >= 0 ? -1 : 1) * Math.max(180, Math.abs(b.vx));
+                  b.vy = -b.vy;
+                }
+              } else {
+                removeBullet = true;
+              }
+              break;
+            }
+          }
+          if (removeBullet) bullets.splice(i, 1);
+        }
+
+        // Powerups (with Flux Magnet attraction)
+        for (let i = powerups.length - 1; i >= 0; i--) {
+          const p = powerups[i];
+          if (upgrades.magnet > 0) {
+            const dx = player.x - p.x;
+            const dy = player.y - p.y;
+            const dist = Math.hypot(dx, dy);
+            const magRadius = 155 * upgrades.magnet;
+            if (dist > 1 && dist <= magRadius) {
+              const pull = (220 + upgrades.magnet * 95) * dt;
+              p.x += (dx / dist) * pull;
+              p.y += (dy / dist) * pull;
+            } else {
+              p.y += p.vy * dt;
+            }
+          } else {
+            p.y += p.vy * dt;
+          }
+          if (p.y > arenaH + 20) {
+            powerups.splice(i, 1);
+            continue;
+          }
+          if (Math.abs(p.x - player.x) < 28 && Math.abs(p.y - player.y) < 24) {
+            applyPowerup(p.kind);
+            playTone(520, 1040, 0.16, 'triangle', 0.06);
+            powerups.splice(i, 1);
+          }
+        }
+
+        // EMP Electric Rings, Lightning Bolts, & Electrocuted Ghost Animations
+        for (let i = empEffects.length - 1; i >= 0; i--) {
+          const ef = empEffects[i];
+          ef.life -= dt;
+          if (ef.kind === 'ring') {
+            const progress = 1 - Math.max(0, ef.life / ef.maxLife);
+            ef.radius = 18 + ef.maxRadius * progress;
+          }
+          if (ef.life <= 0) empEffects.splice(i, 1);
+        }
+
+        for (let i = shockedGhosts.length - 1; i >= 0; i--) {
+          const sg = shockedGhosts[i];
+          sg.life -= dt;
+          if (sg.life <= 0) {
+            spawnBurst(sg.x + sg.w / 2, sg.y + sg.h / 2, '#38BDF8', 14);
+            shockedGhosts.splice(i, 1);
+          }
+        }
+
+        // Particles & Floating Text
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const pt = particles[i];
+          pt.x += pt.vx * dt;
+          pt.y += pt.vy * dt;
+          pt.life -= dt;
+          if (pt.life <= 0) particles.splice(i, 1);
+        }
+
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+          const ft = floatingTexts[i];
+          ft.y -= 28 * dt;
+          ft.life -= dt;
+          if (ft.life <= 0) floatingTexts.splice(i, 1);
+        }
+
+        // Next Wave Check (Offer Permanent Upgrade after every Boss Wave)
+        if (enemies.length === 0) {
+          if (wave % 5 === 0) {
+            openUpgradePicker();
+            return;
+          }
+          wave += 1;
+          spawnWave(wave);
+          playTone(440, 990, 0.2, 'triangle', 0.06);
+        }
+
+        updateHud();
+      }
+
+      function renderGame() {
+        gCtx.fillStyle = '#06090F';
+        gCtx.fillRect(0, 0, W, H);
+
+        gCtx.save();
+        gCtx.scale(currentZoom, currentZoom);
+
+        // Subtle tactical floor grid inside cabinet (expands cleanly when zoomed out)
+        gCtx.strokeStyle = 'rgba(245, 158, 11, 0.05)';
+        gCtx.lineWidth = 1;
+        for (let x = 0; x <= arenaW; x += 48) {
+          gCtx.beginPath();
+          gCtx.moveTo(x, 0);
+          gCtx.lineTo(x, arenaH);
+          gCtx.stroke();
+        }
+        for (let y = 0; y <= arenaH; y += 48) {
+          gCtx.beginPath();
+          gCtx.moveTo(0, y);
+          gCtx.lineTo(arenaW, y);
+          gCtx.stroke();
+        }
+
+        // Draw Player Ship
+        if (gameState !== 'GAME_OVER') {
+          const blinkSkip = invulnTimer > 0 && Math.floor(invulnTimer * 12) % 2 === 0;
+          if (!blinkSkip) {
+            gCtx.save();
+            gCtx.translate(player.x, player.y);
+
+            // Thruster flame
+            gCtx.fillStyle = rapidTimer > 0 ? '#38BDF8' : '#F59E0B';
+            gCtx.beginPath();
+            gCtx.moveTo(-6, 12);
+            gCtx.lineTo(6, 12);
+            gCtx.lineTo(0, 20 + Math.random() * 6);
+            gCtx.closePath();
+            gCtx.fill();
+
+            // Ship hull
+            gCtx.fillStyle = '#F8FAFC';
+            gCtx.beginPath();
+            gCtx.moveTo(0, -14);
+            gCtx.lineTo(18, 10);
+            gCtx.lineTo(7, 8);
+            gCtx.lineTo(0, 12);
+            gCtx.lineTo(-7, 8);
+            gCtx.lineTo(-18, 10);
+            gCtx.closePath();
+            gCtx.fill();
+
+            // Cockpit visor
+            gCtx.fillStyle = laserTimer > 0 ? '#22D3EE' : heavyTimer > 0 ? '#A78BFA' : '#F59E0B';
+            gCtx.fillRect(-3, -4, 6, 6);
+            gCtx.restore();
+          }
+
+          // Draw Autonomous Wingman Pod(s) (2-4 smart drones)
+          if (upgrades.wingman > 0) {
+            const podCount = Math.min(4, 1 + upgrades.wingman);
+            const nowOrb = performance.now() * 0.003;
+            const wingOffsets = podCount === 2 ? [-34, 34] : podCount === 3 ? [-42, 0, 42] : [-50, -24, 24, 50];
+            for (let d = 0; d < podCount; d++) {
+              const px = player.x + wingOffsets[d];
+              const py = player.y - (d % 2 === 0 ? 6 : 16) + Math.sin(nowOrb + d * 1.6) * 4;
+              gCtx.save();
+              gCtx.translate(px, py);
+              gCtx.fillStyle = '#A78BFA';
+              gCtx.beginPath();
+              gCtx.moveTo(0, -8);
+              gCtx.lineTo(7, 3);
+              gCtx.lineTo(0, 7);
+              gCtx.lineTo(-7, 3);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#22D3EE';
+              gCtx.beginPath();
+              gCtx.arc(0, 0, 2.4, 0, Math.PI * 2);
+              gCtx.fill();
+              gCtx.restore();
+            }
+          }
+
+          // Draw Orbital Saw Shield Orbs
+          if (upgrades.orbital > 0) {
+            const sawCount = 1 + upgrades.orbital;
+            const sawOrbitR = 44;
+            const nowSaw = performance.now() * 0.0045;
+            for (let s = 0; s < sawCount; s++) {
+              const ang = nowSaw + (Math.PI * 2 * s) / sawCount;
+              const sx = player.x + Math.cos(ang) * sawOrbitR;
+              const sy = player.y + Math.sin(ang) * sawOrbitR;
+              gCtx.save();
+              gCtx.translate(sx, sy);
+              gCtx.rotate(nowSaw * 4);
+              gCtx.fillStyle = '#E879F9';
+              gCtx.beginPath();
+              gCtx.moveTo(0, -8);
+              gCtx.lineTo(6, 0);
+              gCtx.lineTo(0, 8);
+              gCtx.lineTo(-6, 0);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#FFFFFF';
+              gCtx.beginPath();
+              gCtx.arc(0, 0, 2.5, 0, Math.PI * 2);
+              gCtx.fill();
+              gCtx.restore();
+            }
+          }
+        }
+
+        // Draw Continuous Multi-Beam Laser (supports 1X, 2X, 3X, and Heavy synergy)
+        if (laserBeams.length > 0 && gameState === 'PLAYING') {
+          const pulse = Math.sin(performance.now() * 0.035) * 2.2;
+          gCtx.save();
+          gCtx.lineCap = 'round';
+          for (const beam of laserBeams) {
+            // Outer glow
+            gCtx.strokeStyle = beam.heavy ? 'rgba(167, 139, 250, 0.38)' : 'rgba(34, 211, 238, 0.32)';
+            gCtx.lineWidth = beam.width + 6 + pulse;
+            gCtx.beginPath();
+            gCtx.moveTo(beam.x0, beam.y0);
+            gCtx.lineTo(beam.endX, beam.endY);
+            gCtx.stroke();
+
+            // Mid energy core
+            gCtx.strokeStyle = beam.heavy ? '#C084FC' : '#22D3EE';
+            gCtx.lineWidth = beam.width * 0.55;
+            gCtx.beginPath();
+            gCtx.moveTo(beam.x0, beam.y0);
+            gCtx.lineTo(beam.endX, beam.endY);
+            gCtx.stroke();
+
+            // White-hot inner line
+            gCtx.strokeStyle = '#FFFFFF';
+            gCtx.lineWidth = beam.heavy ? 3.2 : 2.2;
+            gCtx.beginPath();
+            gCtx.moveTo(beam.x0, beam.y0);
+            gCtx.lineTo(beam.endX, beam.endY);
+            gCtx.stroke();
+
+            // Muzzle & impact flare
+            gCtx.fillStyle = beam.heavy ? '#C084FC' : '#22D3EE';
+            gCtx.beginPath();
+            gCtx.arc(beam.x0, beam.y0, 5.5 + pulse * 0.35, 0, Math.PI * 2);
+            gCtx.fill();
+
+            if (beam.endY > 0) {
+              gCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+              gCtx.beginPath();
+              gCtx.arc(beam.endX, beam.endY, 7.5 + pulse * 0.4, 0, Math.PI * 2);
+              gCtx.fill();
+            }
+          }
+          gCtx.restore();
+        }
+
+        // Draw Player Bullets
+        for (const b of bullets) {
+          gCtx.fillStyle = b.crit ? '#FDE047' : b.wingman ? '#22D3EE' : b.novaShard ? '#A3E635' : b.heavy ? '#A78BFA' : '#F59E0B';
+          const bw = b.crit ? 6 : b.heavy ? 6 : b.wingman ? 4.5 : b.novaShard ? 4 : 4;
+          const bh = b.crit ? 17 : b.heavy ? 16 : b.wingman ? 13 : b.novaShard ? 9 : 14;
+          gCtx.fillRect(b.x - bw / 2, b.y - bh / 2, bw, bh);
+        }
+
+        // Draw Enemy Bullets
+        gCtx.fillStyle = '#FB7185';
+        for (const eb of enemyBullets) {
+          gCtx.beginPath();
+          gCtx.arc(eb.x, eb.y, 4, 0, Math.PI * 2);
+          gCtx.fill();
+        }
+
+        // Draw Enemies (Non-boxy angular / hex / wing silhouettes & 4 distinct Boss shapes)
+        for (const en of enemies) {
+          gCtx.save();
+          const isFlashing = en.hitFlash > 0;
+          const cx = en.x + en.w / 2;
+          const cy = en.y + en.h / 2;
+
+          if (en.type === 'boss') {
+            const jx = en.shockTimer > 0 ? (Math.random() - 0.5) * 5 : 0;
+            const jy = en.shockTimer > 0 ? (Math.random() - 0.5) * 4 : 0;
+            gCtx.translate(jx, jy);
+            const shape = en.bossShape || 0;
+
+            if (shape === 1) {
+              // Shape 1: Triple-Fang Trident Carrier (#FB923C)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#FB923C';
+              gCtx.beginPath();
+              gCtx.moveTo(en.x + 8, en.y + en.h);
+              gCtx.lineTo(en.x, en.y + 10);
+              gCtx.lineTo(en.x + 18, en.y);
+              gCtx.lineTo(cx - 16, en.y + 12);
+              gCtx.lineTo(cx, en.y + en.h - 4);
+              gCtx.lineTo(cx + 16, en.y + 12);
+              gCtx.lineTo(en.x + en.w - 18, en.y);
+              gCtx.lineTo(en.x + en.w, en.y + 10);
+              gCtx.lineTo(en.x + en.w - 8, en.y + en.h);
+              gCtx.lineTo(cx + 12, en.y + en.h - 14);
+              gCtx.lineTo(cx, en.y + en.h + 4);
+              gCtx.lineTo(cx - 12, en.y + en.h - 14);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#06090F';
+              gCtx.fillRect(cx - 18, en.y + 8, 36, 7);
+              gCtx.fillStyle = '#22D3EE';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy, 6, 0, Math.PI * 2);
+              gCtx.fill();
+            } else if (shape === 2) {
+              // Shape 2: Hex-Core Orbiter Fortress (#EC4899)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#EC4899';
+              // Tapered flanking wing pylons
+              gCtx.beginPath();
+              gCtx.moveTo(en.x, en.y + cy - en.y);
+              gCtx.lineTo(en.x + 18, en.y + 6);
+              gCtx.lineTo(en.x + 24, en.y + en.h - 6);
+              gCtx.lineTo(en.x + 4, en.y + en.h - 10);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.beginPath();
+              gCtx.moveTo(en.x + en.w, en.y + cy - en.y);
+              gCtx.lineTo(en.x + en.w - 18, en.y + 6);
+              gCtx.lineTo(en.x + en.w - 24, en.y + en.h - 6);
+              gCtx.lineTo(en.x + en.w - 4, en.y + en.h - 10);
+              gCtx.closePath();
+              gCtx.fill();
+              // Octagonal central citadel
+              gCtx.beginPath();
+              gCtx.moveTo(cx - 22, en.y);
+              gCtx.lineTo(cx + 22, en.y);
+              gCtx.lineTo(cx + 38, cy);
+              gCtx.lineTo(cx + 22, en.y + en.h);
+              gCtx.lineTo(cx - 22, en.y + en.h);
+              gCtx.lineTo(cx - 38, cy);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#06090F';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy, 12, 0, Math.PI * 2);
+              gCtx.fill();
+              gCtx.fillStyle = '#FDE047';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy, 6, 0, Math.PI * 2);
+              gCtx.fill();
+            } else if (shape === 3) {
+              // Shape 3: Crescent Scythe Leviathan (#A78BFA)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#A78BFA';
+              gCtx.beginPath();
+              gCtx.moveTo(en.x, en.y + en.h + 4);
+              gCtx.lineTo(en.x + 12, en.y + 10);
+              gCtx.lineTo(cx - 24, en.y);
+              gCtx.lineTo(cx, en.y + 12);
+              gCtx.lineTo(cx + 24, en.y);
+              gCtx.lineTo(en.x + en.w - 12, en.y + 10);
+              gCtx.lineTo(en.x + en.w, en.y + en.h + 4);
+              gCtx.lineTo(en.x + en.w - 22, en.y + en.h - 12);
+              gCtx.lineTo(cx, en.y + en.h - 14);
+              gCtx.lineTo(en.x + 22, en.y + en.h - 12);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#06090F';
+              gCtx.fillRect(cx - 20, en.y + 13, 14, 6);
+              gCtx.fillRect(cx + 6, en.y + 13, 14, 6);
+              gCtx.fillStyle = '#34D399';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy + 4, 5.5, 0, Math.PI * 2);
+              gCtx.fill();
+            } else if (shape === 4) {
+              // Shape 4: Solar Monolith Prism Dreadnought (#22D3EE)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#22D3EE';
+              gCtx.beginPath();
+              gCtx.moveTo(cx, en.y + en.h + 4);
+              gCtx.lineTo(en.x + 14, cy);
+              gCtx.lineTo(en.x + 28, en.y);
+              gCtx.lineTo(en.x + en.w - 28, en.y);
+              gCtx.lineTo(en.x + en.w - 14, cy);
+              gCtx.closePath();
+              gCtx.fill();
+              // Split prism wing fins
+              gCtx.beginPath();
+              gCtx.moveTo(en.x, en.y + 6);
+              gCtx.lineTo(en.x + 16, cy);
+              gCtx.lineTo(en.x + 4, en.y + en.h - 4);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.beginPath();
+              gCtx.moveTo(en.x + en.w, en.y + 6);
+              gCtx.lineTo(en.x + en.w - 16, cy);
+              gCtx.lineTo(en.x + en.w - 4, en.y + en.h - 4);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#06090F';
+              gCtx.beginPath();
+              gCtx.moveTo(cx, en.y + 8);
+              gCtx.lineTo(cx + 12, cy);
+              gCtx.lineTo(cx, en.y + en.h - 8);
+              gCtx.lineTo(cx - 12, cy);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#FDE047';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+              gCtx.fill();
+            } else if (shape === 5) {
+              // Shape 5: Viper Hydra Twin-Head Cruiser (#10B981)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#10B981';
+              gCtx.beginPath();
+              gCtx.moveTo(en.x + 16, en.y + en.h + 4);
+              gCtx.lineTo(en.x, en.y + 12);
+              gCtx.lineTo(en.x + 24, en.y);
+              gCtx.lineTo(cx, en.y + 16);
+              gCtx.lineTo(en.x + en.w - 24, en.y);
+              gCtx.lineTo(en.x + en.w, en.y + 12);
+              gCtx.lineTo(en.x + en.w - 16, en.y + en.h + 4);
+              gCtx.lineTo(cx + 12, en.y + en.h - 14);
+              gCtx.lineTo(cx - 12, en.y + en.h - 14);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#06090F';
+              gCtx.beginPath();
+              gCtx.arc(en.x + 24, cy, 4.5, 0, Math.PI * 2);
+              gCtx.arc(en.x + en.w - 24, cy, 4.5, 0, Math.PI * 2);
+              gCtx.fill();
+              gCtx.fillStyle = '#FB7185';
+              gCtx.beginPath();
+              gCtx.arc(en.x + 24, cy, 2.2, 0, Math.PI * 2);
+              gCtx.arc(en.x + en.w - 24, cy, 2.2, 0, Math.PI * 2);
+              gCtx.fill();
+            } else if (shape === 6) {
+              // Shape 6: Crimson Citadel Crown Fortress (#EF4444)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#EF4444';
+              gCtx.beginPath();
+              gCtx.moveTo(en.x + 10, en.y + en.h);
+              gCtx.lineTo(en.x, en.y + 18);
+              gCtx.lineTo(en.x + 14, en.y + 2);
+              gCtx.lineTo(cx - 18, en.y + 12);
+              gCtx.lineTo(cx, en.y);
+              gCtx.lineTo(cx + 18, en.y + 12);
+              gCtx.lineTo(en.x + en.w - 14, en.y + 2);
+              gCtx.lineTo(en.x + en.w, en.y + 18);
+              gCtx.lineTo(en.x + en.w - 10, en.y + en.h);
+              gCtx.closePath();
+              gCtx.fill();
+              // Triple crimson reactor eyes
+              gCtx.fillStyle = '#06090F';
+              gCtx.fillRect(cx - 28, cy - 3, 56, 10);
+              gCtx.fillStyle = '#F59E0B';
+              [-18, 0, 18].forEach((ox) => {
+                gCtx.beginPath();
+                gCtx.arc(cx + ox, cy + 2, 3.5, 0, Math.PI * 2);
+                gCtx.fill();
+              });
+            } else if (shape === 7) {
+              // Shape 7: Phantom Eclipse Stealth Ring-Wing (#E2E8F0)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#CBD5E1';
+              gCtx.beginPath();
+              gCtx.moveTo(cx, en.y);
+              gCtx.lineTo(en.x + en.w, en.y + en.h - 8);
+              gCtx.lineTo(cx + 18, en.y + en.h - 2);
+              gCtx.lineTo(cx, en.y + 18);
+              gCtx.lineTo(cx - 18, en.y + en.h - 2);
+              gCtx.lineTo(en.x, en.y + en.h - 8);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.strokeStyle = '#38BDF8';
+              gCtx.lineWidth = 2.5;
+              gCtx.beginPath();
+              gCtx.arc(cx, cy - 2, 11, 0, Math.PI * 2);
+              gCtx.stroke();
+              gCtx.fillStyle = '#22D3EE';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy - 2, 4.5, 0, Math.PI * 2);
+              gCtx.fill();
+            } else {
+              // Shape 0: Swept Amber Command Dreadnought (#F59E0B)
+              gCtx.fillStyle = isFlashing ? '#FFFFFF' : '#F59E0B';
+              gCtx.beginPath();
+              gCtx.moveTo(cx, en.y + en.h);
+              gCtx.lineTo(en.x + 18, en.y + en.h - 10);
+              gCtx.lineTo(en.x, en.y + 14);
+              gCtx.lineTo(en.x + 24, en.y);
+              gCtx.lineTo(en.x + en.w - 24, en.y);
+              gCtx.lineTo(en.x + en.w, en.y + 14);
+              gCtx.lineTo(en.x + en.w - 18, en.y + en.h - 10);
+              gCtx.closePath();
+              gCtx.fill();
+              gCtx.fillStyle = '#06090F';
+              gCtx.fillRect(en.x + 22, en.y + 13, 18, 8);
+              gCtx.fillRect(en.x + en.w - 40, en.y + 13, 18, 8);
+              gCtx.fillStyle = '#FB7185';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy + 2, 6, 0, Math.PI * 2);
+              gCtx.fill();
+            }
+
+            // Boss HP bar
+            gCtx.fillStyle = 'rgba(255,255,255,0.18)';
+            gCtx.fillRect(en.x, en.y - 10, en.w, 5);
+            gCtx.fillStyle = en.slowTimer > 0 ? '#38BDF8' : '#EF4444';
+            gCtx.fillRect(en.x, en.y - 10, en.w * Math.max(0, en.hp / en.maxHp), 5);
+          } else {
+            const jx = en.shockTimer > 0 ? (Math.random() - 0.5) * 5 : 0;
+            const jy = en.shockTimer > 0 ? (Math.random() - 0.5) * 4 : 0;
+            gCtx.translate(jx, jy);
+
+            const baseColor =
+              en.type === 'juggernaut'
+                ? '#FB7185'
+                : en.type === 'heavy'
+                  ? '#38BDF8'
+                  : en.type === 'zigzag'
+                    ? '#F59E0B'
+                    : en.type === 'courier'
+                      ? '#A3E635'
+                      : '#10B981';
+            gCtx.fillStyle = isFlashing ? '#FFFFFF' : en.slowTimer > 0 ? '#7DD3FC' : baseColor;
+
+            gCtx.beginPath();
+            if (en.type === 'courier') {
+              // Fragile diamond loot pod
+              gCtx.moveTo(cx, en.y);
+              gCtx.lineTo(en.x + en.w, cy);
+              gCtx.lineTo(cx, en.y + en.h);
+              gCtx.lineTo(en.x, cy);
+            } else if (en.type === 'juggernaut') {
+              // Horned hexagonal cruiser
+              gCtx.moveTo(cx, en.y + en.h);
+              gCtx.lineTo(en.x + 4, en.y + en.h - 6);
+              gCtx.lineTo(en.x, en.y + 8);
+              gCtx.lineTo(en.x + 8, en.y);
+              gCtx.lineTo(en.x + en.w - 8, en.y);
+              gCtx.lineTo(en.x + en.w, en.y + 8);
+              gCtx.lineTo(en.x + en.w - 4, en.y + en.h - 6);
+            } else if (en.type === 'heavy') {
+              // Armored octagonal gunship
+              gCtx.moveTo(cx - 6, en.y + en.h);
+              gCtx.lineTo(en.x, en.y + cy - en.y + 2);
+              gCtx.lineTo(en.x + 6, en.y);
+              gCtx.lineTo(en.x + en.w - 6, en.y);
+              gCtx.lineTo(en.x + en.w, en.y + cy - en.y + 2);
+              gCtx.lineTo(cx + 6, en.y + en.h);
+            } else if (en.type === 'zigzag') {
+              // Twin-wing chevron raider
+              gCtx.moveTo(cx, en.y + en.h);
+              gCtx.lineTo(en.x, en.y + 4);
+              gCtx.lineTo(cx - 5, en.y + 8);
+              gCtx.lineTo(cx, en.y);
+              gCtx.lineTo(cx + 5, en.y + 8);
+              gCtx.lineTo(en.x + en.w, en.y + 4);
+            } else {
+              // Sharp interceptor dart
+              gCtx.moveTo(cx, en.y + en.h);
+              gCtx.lineTo(en.x + 2, en.y + 6);
+              gCtx.lineTo(cx, en.y);
+              gCtx.lineTo(en.x + en.w - 2, en.y + 6);
+            }
+            gCtx.closePath();
+            gCtx.fill();
+
+            if (en.type === 'courier') {
+              // Glowing amber loot core inside courier pod
+              gCtx.fillStyle = '#F59E0B';
+              gCtx.beginPath();
+              gCtx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+              gCtx.fill();
+            } else {
+              // Cockpit eye slit
+              gCtx.fillStyle = '#06090F';
+              gCtx.beginPath();
+              gCtx.arc(cx - 5, cy - 1, 2.2, 0, Math.PI * 2);
+              gCtx.arc(cx + 5, cy - 1, 2.2, 0, Math.PI * 2);
+              gCtx.fill();
+            }
+
+            // Mini HP bar above thick-HP enemies
+            if (en.maxHp > 1) {
+              gCtx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+              gCtx.fillRect(en.x, en.y - 6, en.w, 3);
+              gCtx.fillStyle = en.hp / en.maxHp > 0.5 ? baseColor : '#EF4444';
+              gCtx.fillRect(en.x, en.y - 6, en.w * Math.max(0, en.hp / en.maxHp), 3);
+            }
+          }
+
+          // Electric crackling arcs on stunned/shocked surviving enemies
+          if (en.shockTimer > 0) {
+            gCtx.strokeStyle = Math.random() < 0.5 ? '#38BDF8' : '#FDE047';
+            gCtx.lineWidth = 1.6;
+            gCtx.beginPath();
+            gCtx.moveTo(en.x - 3, cy + (Math.random() - 0.5) * 10);
+            gCtx.lineTo(cx + (Math.random() - 0.5) * 10, en.y + (Math.random() - 0.5) * 8);
+            gCtx.lineTo(en.x + en.w + 3, cy + (Math.random() - 0.5) * 10);
+            gCtx.stroke();
+          }
+          gCtx.restore();
+        }
+
+        // Draw Electrocuted Ghost Silhouettes (enemies killed by EMP visibly convulsing with lightning)
+        for (const sg of shockedGhosts) {
+          const alpha = Math.max(0, sg.life / sg.maxLife);
+          const jitterX = (Math.random() - 0.5) * 7;
+          const jitterY = (Math.random() - 0.5) * 6;
+          const scx = sg.x + sg.w / 2 + jitterX;
+          const scy = sg.y + sg.h / 2 + jitterY;
+          const flashWhite = Math.floor(sg.life * 28) % 2 === 0;
+
+          gCtx.save();
+          gCtx.globalAlpha = alpha;
+          // Flickering electrocuted skeleton silhouette
+          gCtx.fillStyle = flashWhite ? '#E0F2FE' : '#0284C7';
+          gCtx.beginPath();
+          gCtx.moveTo(scx, sg.y + sg.h + jitterY);
+          gCtx.lineTo(sg.x + jitterX, scy);
+          gCtx.lineTo(scx, sg.y + jitterY);
+          gCtx.lineTo(sg.x + sg.w + jitterX, scy);
+          gCtx.closePath();
+          gCtx.fill();
+
+          // Crackling electric bolts around the dying bot
+          gCtx.strokeStyle = flashWhite ? '#FFFFFF' : '#FDE047';
+          gCtx.lineWidth = 1.8;
+          for (let b = 0; b < 3; b++) {
+            const a = Math.random() * Math.PI * 2;
+            const r1 = 6;
+            const r2 = Math.max(sg.w, sg.h) * 0.75;
+            gCtx.beginPath();
+            gCtx.moveTo(scx + Math.cos(a) * r1, scy + Math.sin(a) * r1);
+            gCtx.lineTo(
+              scx + Math.cos(a + 0.3) * (r2 * 0.55) + (Math.random() - 0.5) * 6,
+              scy + Math.sin(a + 0.3) * (r2 * 0.55) + (Math.random() - 0.5) * 6
+            );
+            gCtx.lineTo(scx + Math.cos(a) * r2, scy + Math.sin(a) * r2);
+            gCtx.stroke();
+          }
+          gCtx.restore();
+        }
+
+        // Draw EMP Expanding Shockwave Rings & Jagged Lightning Bolts
+        for (const ef of empEffects) {
+          const alpha = Math.max(0, ef.life / ef.maxLife);
+          gCtx.save();
+          gCtx.globalAlpha = alpha;
+          if (ef.kind === 'ring') {
+            gCtx.strokeStyle = '#38BDF8';
+            gCtx.lineWidth = 4 * alpha + 1;
+            gCtx.beginPath();
+            gCtx.arc(ef.x, ef.y, ef.radius, 0, Math.PI * 2);
+            gCtx.stroke();
+
+            gCtx.strokeStyle = 'rgba(253, 224, 71, 0.7)';
+            gCtx.lineWidth = 1.8;
+            gCtx.beginPath();
+            gCtx.arc(ef.x, ef.y, Math.max(0, ef.radius - 10), 0, Math.PI * 2);
+            gCtx.stroke();
+          } else if (ef.kind === 'bolt') {
+            const segments = 6;
+            gCtx.strokeStyle = Math.random() < 0.45 ? '#FFFFFF' : '#38BDF8';
+            gCtx.lineWidth = 2.2;
+            gCtx.beginPath();
+            gCtx.moveTo(ef.x1, ef.y1);
+            for (let s = 1; s < segments; s++) {
+              const t = s / segments;
+              const px = ef.x1 + (ef.x2 - ef.x1) * t + (Math.random() - 0.5) * 26;
+              const py = ef.y1 + (ef.y2 - ef.y1) * t + (Math.random() - 0.5) * 16;
+              gCtx.lineTo(px, py);
+            }
+            gCtx.lineTo(ef.x2, ef.y2);
+            gCtx.stroke();
+          }
+          gCtx.restore();
+        }
+
+        // Draw Powerups (6 distinct types incl. Laser Beam)
+        const powerColors = {
+          twin: '#38BDF8',
+          triple: '#0EA5E9',
+          rapid: '#F59E0B',
+          heavy: '#A78BFA',
+          laser: '#22D3EE',
+          shield: '#10B981',
+          emp: '#FB7185'
+        };
+        const powerLabels = {
+          twin: '2X',
+          triple: '3X',
+          rapid: 'SPD',
+          heavy: 'HVY',
+          laser: 'LSR',
+          shield: '+1',
+          emp: 'EMP'
+        };
+
+        for (const p of powerups) {
+          gCtx.save();
+          gCtx.fillStyle = powerColors[p.kind] || '#38BDF8';
+          gCtx.beginPath();
+          gCtx.roundRect(p.x - 14, p.y - 10, 28, 20, 5);
+          gCtx.fill();
+          gCtx.fillStyle = '#06090F';
+          gCtx.font = 'bold 11px "JetBrains Mono", monospace';
+          gCtx.textAlign = 'center';
+          gCtx.textBaseline = 'middle';
+          gCtx.fillText(powerLabels[p.kind] || '?', p.x, p.y + 1);
+          gCtx.restore();
+        }
+
+        // Draw Particles
+        for (const pt of particles) {
+          gCtx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+          gCtx.fillStyle = pt.color;
+          gCtx.fillRect(pt.x, pt.y, pt.size, pt.size);
+        }
+        gCtx.globalAlpha = 1;
+
+        // Draw Floating Texts
+        for (const ft of floatingTexts) {
+          gCtx.save();
+          gCtx.globalAlpha = Math.min(1, ft.life * 1.4);
+          gCtx.fillStyle = ft.color;
+          gCtx.font = '700 13px "JetBrains Mono", monospace';
+          gCtx.textAlign = 'center';
+          gCtx.fillText(ft.text, ft.x, ft.y);
+          gCtx.restore();
+        }
+        gCtx.restore();
+      }
+
+      function gameLoop(ts) {
+        const dt = Math.min(0.05, (ts - lastTime) / 1000 || 0);
+        lastTime = ts;
+        updateGame(dt);
+        renderGame();
+        requestAnimationFrame(gameLoop);
+      }
+      requestAnimationFrame(gameLoop);
+
+      /* =====================================================================
+       * 4. 3-CV ROSTER DATA & RENDERER (EDITABLE IN UI OR IN NOTEPAD BELOW)
+       * ===================================================================== */
+      // CV DATA: You can directly edit any of these 3 CV objects in Notepad!
+      const DEFAULT_CVS = [
+        {
+          id: 0,
+          slotLabel: 'CV 01 · Hardware & IoT',
+          isEmpty: false,
+          initials: 'KE',
+          name: 'Kevin Emerson',
+          subtitle: 'Siswa SMAK BPK PENABUR Holis — Minat: Teknologi & IoT',
+          email: 'kevinimerson19@gmail.com',
+          phone: '+62 812-2218-9711',
+          address: 'Jalan Gempol Asri IX No. 20',
+          skills: [
+            'Analytic thinking',
+            'Sharp cognitive ability',
+            'Computational thinking',
+            'Pemrograman mikrokontroler'
+          ],
+          education: [
+            'SMAK BPK PENABUR Holis — Jurusan IPA',
+            'SMPK BPK PENABUR Holis',
+            'SDK BPK PENABUR Holis'
+          ],
+          profile: 'Siswa SMAK BPK PENABUR Holis yang memiliki minat di bidang teknologi dan IoT. Terbiasa mengoperasikan komponen elektronik dasar dan berkeinginan kuat untuk terus belajar.',
+          experienceTitle: 'Juara 2 — UNPAR Product Design Competition',
+          experienceBullets: [
+            'Merancang prototipe smart traffic light berbasis sensor untuk otomatisasi durasi lampu lalu lintas.',
+            'Melakukan pemrograman mikrokontroler dan penyusunan dokumentasi teknis.'
+          ],
+          projects: 'Prototipe IoT; sensor & aktuator; pemrograman embedded; dokumentasi teknis; pengembangan prototipe cepat.'
+        },
+        {
+          id: 1,
+          slotLabel: 'CV 02 · Slot Kedua',
+          isEmpty: true,
+          initials: '02',
+          name: 'Slot CV #2 (Siap Diisi)',
+          subtitle: 'Klik Edit untuk memasukkan CV kedua (mis. Software / Web / Kompetisi)',
+          email: 'email@anda.com',
+          phone: '+62 8xx-xxxx-xxxx',
+          address: 'Alamat Anda',
+          skills: [
+            'Tambahkan Keahlian 1',
+            'Tambahkan Keahlian 2',
+            'Tambahkan Keahlian 3'
+          ],
+          education: [
+            'Institusi Pendidikan 1',
+            'Institusi Pendidikan 2'
+          ],
+          profile: 'Tulis ringkasan profil untuk versi CV kedua Anda di sini. Tema warna dan tipografi otomatis mengikuti website Signal Defender.',
+          experienceTitle: 'Judul Pengalaman atau Prestasi',
+          experienceBullets: [
+            'Poin pencapaian atau tanggung jawab pertama.',
+            'Poin pencapaian atau tanggung jawab kedua.'
+          ],
+          projects: 'Daftar proyek unggulan, sertifikasi, atau minat khusus untuk CV slot ke-2.'
+        },
+        {
+          id: 2,
+          slotLabel: 'CV 03 · Atlet Balap Sepeda',
+          isEmpty: false,
+          initials: 'DT',
+          name: 'Dave Tandioputra',
+          subtitle: 'SMA BPK PENABUR Holis Bandung — Atlet Balap Sepeda (Men Youth)',
+          email: 'dtandioputra@gmail.com',
+          phone: '0878-9000-5432',
+          address: 'TKI 2 Blok 2a2 No. 72a Bandung',
+          skills: [
+            'Race Strategy & Pacing Logic',
+            'Tactical Peloton Decision-Making',
+            'Split-Second Spatial Awareness',
+            'Performance & Cadence Analytics',
+            'High-Endurance Sprint Conditioning'
+          ],
+          education: [
+            'SMA BPK PENABUR Holis Bandung'
+          ],
+          profile: 'Atlet balap sepeda kategori Men Youth dengan ketajaman logika strategi balap, kalkulasi pacing/cadence, serta daya tahan fisik kompetitif di tingkat regional dan nasional. Data Pribadi — Bandung, 4 Februari 2009 · Laki-Laki · Kristen · Indonesia · No. Paspor: X7800932.',
+          experienceTitle: 'Prestasi Balap Sepeda',
+          experienceBullets: [
+            '1st Premi Reboan Pakansari Criterium',
+            '2nd PORTUE kategori Men Cadet (13-14)',
+            '4th PORTUE kategori Men U-16 Jabar',
+            '2nd Piala Bupati Bandung Barat kategori Men Youth (15-16)',
+            '1st Kemala IRR 53K kategori Men Youth',
+            '4th Tugu Muda Criterium kategori Men Youth',
+            '2nd Tour de Linggarjati Criterium kategori Men Youth',
+            '2nd Tour de Linggarjati IRR kategori Men Youth',
+            '3rd Indonesia Track National Championship ITT 1000m kategori Men Youth',
+            '1st Seleksi POPNAS Scratch Race kategori Men Youth',
+            '1st Seleksi POPNAS ITT 2000m kategori Men Youth',
+            '1st POPNAS Scratch Race kategori Men Youth',
+            '2nd POPNAS ITT 1000m kategori Men Youth'
+          ],
+          projects: 'Kategori: Men Youth (15-16) · Size Jersey: Skinsuit (XS), BIB (M) · Disiplin: Criterium, Individual Time Trial (ITT), Scratch Race, Individual Road Race (IRR).'
+        }
+      ];
+
+      let cvSlots = JSON.parse(localStorage.getItem('signal_defender_cvs_v3') || 'null') || JSON.parse(JSON.stringify(DEFAULT_CVS));
+      let activeCvIndex = 0;
+      let editingCvIndex = 0;
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function renderCvSelector() {
+        const grid = document.getElementById('cv-selector-grid');
+        grid.innerHTML = cvSlots
+          .map((cv, idx) => {
+            const isSelected = idx === activeCvIndex;
+            return `
+              <div
+                onclick="selectCv(${idx})"
+                class="${isSelected ? 'cabinet-active' : 'cabinet-panel hover:border-white/25'} rounded-xl p-5 transition-all cursor-pointer flex flex-col justify-between gap-4"
+              >
+                <div>
+                  <div class="flex items-center justify-between gap-2 mb-3">
+                    <span class="text-xs font-mono text-amber-400">${escapeHtml(cv.slotLabel)}</span>
+                    <span class="text-xs font-mono ${isSelected ? 'text-emerald-400' : 'text-slate-500'}">
+                      ${isSelected ? 'Active' : cv.isEmpty ? 'Template' : 'Ready'}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 font-display font-bold text-lg flex items-center justify-center shrink-0">
+                      ${escapeHtml(cv.initials)}
+                    </div>
+                    <div class="min-w-0">
+                      <h3 class="font-display font-bold text-base text-white truncate">${escapeHtml(cv.name)}</h3>
+                      <p class="text-xs text-slate-400 truncate mt-0.5">${escapeHtml(cv.subtitle)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-3 border-t border-white/10">
+                  <span class="text-xs text-slate-400">${isSelected ? 'Viewing below' : 'Click to view'}</span>
+                  <button
+                    type="button"
+                    onclick="event.stopPropagation(); openCvEditor(${idx})"
+                    class="px-3 py-1 rounded-md border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-200 transition-colors cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+      }
+
+      function renderActiveCv() {
+        const cv = cvSlots[activeCvIndex];
+        const viewer = document.getElementById('cv-viewer-card');
+
+        const skillsHtml = (cv.skills || [])
+          .map(
+            (skill) =>
+              `<span class="cv-skill-tag inline-block px-3 py-1 rounded-md border border-amber-500/30 bg-amber-500/10 text-amber-200 text-xs font-mono">${escapeHtml(skill)}</span>`
+          )
+          .join('');
+
+        const eduHtml = (cv.education || [])
+          .map((item) => `<p class="text-sm text-slate-200 leading-relaxed">${escapeHtml(item)}</p>`)
+          .join('');
+
+        const expBulletsHtml = (cv.experienceBullets || [])
+          .map((bullet) => `<li class="text-sm text-slate-300 leading-relaxed">${escapeHtml(bullet)}</li>`)
+          .join('');
+
+        viewer.innerHTML = `
+          <!-- CV Header (Adapted from original CV_KTD layout into Arcade Theme) -->
+          <div class="p-6 sm:p-8 border-b border-white/10 bg-[#141A28] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div class="flex items-center gap-5">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 text-slate-950 font-display font-bold text-3xl flex items-center justify-center shrink-0 shadow-lg">
+                ${escapeHtml(cv.initials)}
+              </div>
+              <div>
+                <p class="text-xs font-mono text-amber-400 mb-1">${escapeHtml(cv.slotLabel)}</p>
+                <h3 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">${escapeHtml(cv.name)}</h3>
+                <p class="text-sm text-slate-300 mt-1">${escapeHtml(cv.subtitle)}</p>
+                <p class="text-xs font-mono text-slate-400 mt-2">
+                  ${escapeHtml(cv.email)} · ${escapeHtml(cv.phone)}
+                </p>
+              </div>
+            </div>
+
+            <div class="no-print flex items-center gap-2 self-start sm:self-center">
+              <button
+                onclick="openCvEditor(${activeCvIndex})"
+                class="px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-semibold transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Edit This CV
+              </button>
+            </div>
+          </div>
+
+          <!-- 2-Column CV Body (Matching original CV grid structure) -->
+          <div class="grid grid-cols-1 md:grid-cols-3">
+            <!-- Left Aside -->
+            <aside class="p-6 sm:p-8 bg-[#0D121C] border-b md:border-b-0 md:border-r border-white/10 space-y-7">
+              <div>
+                <h4 class="cv-accent-text text-xs font-mono uppercase tracking-wider text-amber-400 mb-3">Kontak</h4>
+                <div class="space-y-1.5 text-sm text-slate-300">
+                  <p><span class="text-slate-400">Email:</span> ${escapeHtml(cv.email)}</p>
+                  <p><span class="text-slate-400">Telepon:</span> ${escapeHtml(cv.phone)}</p>
+                  <p><span class="text-slate-400">Alamat:</span> ${escapeHtml(cv.address)}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="cv-accent-text text-xs font-mono uppercase tracking-wider text-amber-400 mb-3">Kemampuan</h4>
+                <div class="flex flex-wrap gap-2">
+                  ${skillsHtml}
+                </div>
+              </div>
+
+              <div>
+                <h4 class="cv-accent-text text-xs font-mono uppercase tracking-wider text-amber-400 mb-3">Pendidikan</h4>
+                <div class="space-y-2 border-t border-white/10 pt-3">
+                  ${eduHtml}
+                </div>
+              </div>
+            </aside>
+
+            <!-- Right Main Content -->
+            <div class="md:col-span-2 p-6 sm:p-8 space-y-7">
+              <div>
+                <h4 class="cv-accent-text text-xs font-mono uppercase tracking-wider text-amber-400 mb-2.5">Profil</h4>
+                <p class="text-sm sm:text-base text-slate-200 leading-relaxed italic">
+                  ${escapeHtml(cv.profile)}
+                </p>
+              </div>
+
+              <div class="border-t border-white/10 pt-6">
+                <h4 class="cv-accent-text text-xs font-mono uppercase tracking-wider text-amber-400 mb-3">Pengalaman</h4>
+                <p class="text-base font-semibold text-white mb-2">${escapeHtml(cv.experienceTitle)}</p>
+                <ul class="list-disc pl-5 space-y-1.5">
+                  ${expBulletsHtml}
+                </ul>
+              </div>
+
+              <div class="border-t border-white/10 pt-6">
+                <h4 class="cv-accent-text text-xs font-mono uppercase tracking-wider text-amber-400 mb-2.5">Proyek & Minat</h4>
+                <p class="text-sm text-slate-300 leading-relaxed">${escapeHtml(cv.projects)}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function selectCv(idx) {
+        activeCvIndex = idx;
+        renderCvSelector();
+        renderActiveCv();
+      }
+
+      function openCvEditor(idx) {
+        editingCvIndex = idx;
+        const cv = cvSlots[idx];
+        document.getElementById('editor-slot-label').textContent = `Editing ${cv.slotLabel}`;
+        document.getElementById('edit-name').value = cv.name || '';
+        document.getElementById('edit-initials').value = cv.initials || '';
+        document.getElementById('edit-subtitle').value = cv.subtitle || '';
+        document.getElementById('edit-email').value = cv.email || '';
+        document.getElementById('edit-phone').value = cv.phone || '';
+        document.getElementById('edit-address').value = cv.address || '';
+        document.getElementById('edit-profile').value = cv.profile || '';
+        document.getElementById('edit-skills').value = (cv.skills || []).join(', ');
+        document.getElementById('edit-education').value = (cv.education || []).join('\n');
+        document.getElementById('edit-exp-title').value = cv.experienceTitle || '';
+        document.getElementById('edit-exp-bullets').value = (cv.experienceBullets || []).join('\n');
+        document.getElementById('edit-projects').value = cv.projects || '';
+
+        document.getElementById('cv-editor-modal').classList.remove('hidden');
+      }
+
+      function closeCvEditor() {
+        document.getElementById('cv-editor-modal').classList.add('hidden');
+      }
+
+      function saveCvEdits(e) {
+        e.preventDefault();
+        const prev = cvSlots[editingCvIndex];
+        cvSlots[editingCvIndex] = {
+          ...prev,
+          isEmpty: false,
+          name: document.getElementById('edit-name').value.trim(),
+          initials: document.getElementById('edit-initials').value.trim().toUpperCase(),
+          subtitle: document.getElementById('edit-subtitle').value.trim(),
+          email: document.getElementById('edit-email').value.trim(),
+          phone: document.getElementById('edit-phone').value.trim(),
+          address: document.getElementById('edit-address').value.trim(),
+          profile: document.getElementById('edit-profile').value.trim(),
+          skills: document.getElementById('edit-skills').value.split(',').map((s) => s.trim()).filter(Boolean),
+          education: document.getElementById('edit-education').value.split('\n').map((s) => s.trim()).filter(Boolean),
+          experienceTitle: document.getElementById('edit-exp-title').value.trim(),
+          experienceBullets: document.getElementById('edit-exp-bullets').value.split('\n').map((s) => s.trim()).filter(Boolean),
+          projects: document.getElementById('edit-projects').value.trim()
+        };
+
+        localStorage.setItem('signal_defender_cvs_v3', JSON.stringify(cvSlots));
+        activeCvIndex = editingCvIndex;
+        renderCvSelector();
+        renderActiveCv();
+        closeCvEditor();
+      }
+
+      function resetCurrentSlot() {
+        cvSlots[editingCvIndex] = JSON.parse(JSON.stringify(DEFAULT_CVS[editingCvIndex]));
+        localStorage.setItem('signal_defender_cvs_v3', JSON.stringify(cvSlots));
+        openCvEditor(editingCvIndex);
+        renderCvSelector();
+        renderActiveCv();
+      }
+
+      renderCvSelector();
+      renderActiveCv();
+
+      /* =====================================================================
+       * 5. ONE-CLICK COPY FOR NOTEPAD (STRIPS DEV-ONLY VITE CLIENT INJECTION)
+       * ===================================================================== */
+      function copySelfSource(btn) {
+        const clone = document.documentElement.cloneNode(true);
+        // Strip Vite dev HMR client script if running inside dev server
+        clone.querySelectorAll('script[src*="@vite/client"]').forEach((el) => el.remove());
+        // Reset dynamic containers and overlays so the copied source initializes cleanly
+        const grid = clone.querySelector('#cv-selector-grid');
+        if (grid) grid.innerHTML = '<!-- Rendered dynamically by JS -->';
+        const viewer = clone.querySelector('#cv-viewer-card');
+        if (viewer) viewer.innerHTML = '<!-- Rendered dynamically by JS -->';
+        const titleOv = clone.querySelector('#overlay-title');
+        if (titleOv) titleOv.classList.remove('hidden');
+        const pauseOv = clone.querySelector('#overlay-paused');
+        if (pauseOv) pauseOv.classList.add('hidden');
+        const overOv = clone.querySelector('#overlay-gameover');
+        if (overOv) overOv.classList.add('hidden');
+        const upgOv = clone.querySelector('#overlay-upgrade');
+        if (upgOv) upgOv.classList.add('hidden');
+
+        const fullSource = '<!doctype html>\n' + clone.outerHTML;
+        navigator.clipboard.writeText(fullSource).then(() => {
+          const original = btn.textContent;
+          btn.textContent = 'Copied! Paste into Notepad';
+          setTimeout(() => {
+            btn.textContent = original;
+          }, 2500);
+        });
+      }
+    </script>
+  
+
+</body></html>
